@@ -1,0 +1,23 @@
+# Godot editor/import cache. These are regenerated locally.
+.godot/
+.import/
+
+# Godot export credentials may contain local signing secrets.
+export_credentials.cfg
+
+# Export/build outputs.
+build/
+builds/
+dist/
+export/
+exports/
+*.pck
+*.exe
+*.zip
+
+# OS/editor noise.
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak

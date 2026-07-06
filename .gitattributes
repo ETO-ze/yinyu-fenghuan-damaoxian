@@ -1,0 +1,16 @@
+# Keep Godot text resources stable across Windows/macOS/Linux.
+* text=auto eol=lf
+
+# Binary game assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ogg binary
+*.wav binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.pck binary
+*.exe binary
+*.zip binary
