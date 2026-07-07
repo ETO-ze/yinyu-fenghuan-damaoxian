@@ -1,253 +1,228 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://c5ppix7xbeg2f"]
 
-[ext_resource type="Script" path="res://scripts/editor/EditableLevelRoot.gd" id="1_root"]
-[ext_resource type="Script" path="res://scripts/editor/EditablePlatform.gd" id="2_platform"]
-[ext_resource type="Script" path="res://scripts/editor/EditableLevelPoint.gd" id="3_point"]
+[ext_resource type="Script" uid="uid://dt0yjgbdo1y4p" path="res://scripts/editor/EditableLevelRoot.gd" id="1_root"]
+[ext_resource type="Script" uid="uid://dduxfpigf5y2m" path="res://scripts/editor/EditablePlatform.gd" id="2_platform"]
+[ext_resource type="Script" uid="uid://cksmifqncdhnh" path="res://scripts/editor/EditableLevelPoint.gd" id="3_point"]
 
-[node name="Level01Editable" type="Node2D"]
+[node name="Level01Editable" type="Node2D" unique_id=1920574063]
 script = ExtResource("1_root")
-level_id = "level_01"
-level_name = "风之高塔 · 完整横版关卡"
-required_feathers = 5
-viewport_size = Vector2(480, 854)
-level_width = 3800.0
-world_bottom = 960.0
 
-[node name="Platforms" type="Node2D" parent="."]
+[node name="Platforms" type="Node2D" parent="." unique_id=76902376]
 
-[node name="start_ground" type="Marker2D" parent="Platforms"]
+[node name="start_ground" type="Marker2D" parent="Platforms" unique_id=561999834]
 position = Vector2(270, 812)
 script = ExtResource("2_platform")
 platform_name = "start_ground"
 platform_size = Vector2(540, 72)
-route_platform = true
 
-[node name="approach_ground" type="Marker2D" parent="Platforms"]
+[node name="approach_ground" type="Marker2D" parent="Platforms" unique_id=276648395]
 position = Vector2(1240, 812)
 script = ExtResource("2_platform")
 platform_name = "approach_ground"
 platform_size = Vector2(500, 72)
 route_platform = false
 
-[node name="portal_ground" type="Marker2D" parent="Platforms"]
-position = Vector2(2220, 812)
+[node name="portal_ground" type="Marker2D" parent="Platforms" unique_id=1222029270]
+position = Vector2(2391, 810)
 script = ExtResource("2_platform")
 platform_name = "portal_ground"
 platform_size = Vector2(520, 72)
 route_platform = false
 
-[node name="tower_ground" type="Marker2D" parent="Platforms"]
-position = Vector2(3340, 812)
+[node name="tower_ground" type="Marker2D" parent="Platforms" unique_id=584475253]
+position = Vector2(3607, 821)
 script = ExtResource("2_platform")
 platform_name = "tower_ground"
 platform_size = Vector2(620, 72)
 route_platform = false
 
-[node name="start_step" type="Marker2D" parent="Platforms"]
-position = Vector2(540, 718)
+[node name="start_step" type="Marker2D" parent="Platforms" unique_id=1768580000]
+position = Vector2(711, 722)
 script = ExtResource("2_platform")
 platform_name = "start_step"
 platform_size = Vector2(190, 30)
-route_platform = true
 
-[node name="floating_a" type="Marker2D" parent="Platforms"]
-position = Vector2(890, 648)
+[node name="floating_a" type="Marker2D" parent="Platforms" unique_id=1264375598]
+position = Vector2(1001, 642)
 script = ExtResource("2_platform")
 platform_name = "floating_a"
 platform_size = Vector2(188, 30)
-route_platform = true
 
-[node name="floating_b" type="Marker2D" parent="Platforms"]
-position = Vector2(1240, 580)
+[node name="floating_b" type="Marker2D" parent="Platforms" unique_id=1837224222]
+position = Vector2(1333, 585)
 script = ExtResource("2_platform")
 platform_name = "floating_b"
 platform_size = Vector2(206, 30)
-route_platform = true
 
-[node name="floating_c" type="Marker2D" parent="Platforms"]
-position = Vector2(1580, 638)
+[node name="floating_c" type="Marker2D" parent="Platforms" unique_id=408045338]
+position = Vector2(1627, 692)
 script = ExtResource("2_platform")
 platform_name = "floating_c"
 platform_size = Vector2(220, 30)
-route_platform = true
 
-[node name="portal_left" type="Marker2D" parent="Platforms"]
-position = Vector2(1920, 570)
+[node name="portal_left" type="Marker2D" parent="Platforms" unique_id=204910820]
+position = Vector2(1936, 604)
 script = ExtResource("2_platform")
 platform_name = "portal_left"
 platform_size = Vector2(210, 30)
-route_platform = true
 
-[node name="portal_right" type="Marker2D" parent="Platforms"]
-position = Vector2(2260, 620)
+[node name="portal_right" type="Marker2D" parent="Platforms" unique_id=762963491]
+position = Vector2(2267, 526)
 script = ExtResource("2_platform")
 platform_name = "portal_right"
 platform_size = Vector2(210, 30)
-route_platform = true
 
-[node name="tower_step_a" type="Marker2D" parent="Platforms"]
-position = Vector2(2600, 678)
+[node name="tower_step_a" type="Marker2D" parent="Platforms" unique_id=374397446]
+position = Vector2(2815, 694)
 script = ExtResource("2_platform")
 platform_name = "tower_step_a"
 platform_size = Vector2(220, 30)
-route_platform = true
 
-[node name="tower_step_b" type="Marker2D" parent="Platforms"]
-position = Vector2(2960, 606)
+[node name="tower_step_b" type="Marker2D" parent="Platforms" unique_id=781071135]
+position = Vector2(3131, 611)
 script = ExtResource("2_platform")
 platform_name = "tower_step_b"
 platform_size = Vector2(210, 30)
-route_platform = true
 
-[node name="tower_finish" type="Marker2D" parent="Platforms"]
-position = Vector2(3420, 710)
+[node name="tower_finish" type="Marker2D" parent="Platforms" unique_id=368462840]
+position = Vector2(3612, 720)
 script = ExtResource("2_platform")
 platform_name = "tower_finish"
 platform_size = Vector2(360, 34)
-route_platform = true
 
-[node name="Feathers" type="Node2D" parent="."]
+[node name="Feathers" type="Node2D" parent="." unique_id=760815981]
 
-[node name="Feather_01" type="Marker2D" parent="Feathers"]
-position = Vector2(540, 659)
+[node name="Feather_01" type="Marker2D" parent="Feathers" unique_id=537850180]
+position = Vector2(710, 681)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_01"
 
-[node name="Feather_02" type="Marker2D" parent="Feathers"]
-position = Vector2(890, 589)
+[node name="Feather_02" type="Marker2D" parent="Feathers" unique_id=195136550]
+position = Vector2(1001, 602)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_02"
 
-[node name="Feather_03" type="Marker2D" parent="Feathers"]
-position = Vector2(1240, 521)
+[node name="Feather_03" type="Marker2D" parent="Feathers" unique_id=721326567]
+position = Vector2(1333, 548)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_03"
 
-[node name="Feather_04" type="Marker2D" parent="Feathers"]
-position = Vector2(1580, 579)
+[node name="Feather_04" type="Marker2D" parent="Feathers" unique_id=547796453]
+position = Vector2(1623, 663)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_04"
 
-[node name="Feather_05" type="Marker2D" parent="Feathers"]
+[node name="Feather_05" type="Marker2D" parent="Feathers" unique_id=122489903]
 position = Vector2(1920, 511)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_05"
 
-[node name="Feather_06" type="Marker2D" parent="Feathers"]
-position = Vector2(2260, 561)
+[node name="Feather_06" type="Marker2D" parent="Feathers" unique_id=2040270166]
+position = Vector2(2266, 483)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_06"
 
-[node name="Feather_07" type="Marker2D" parent="Feathers"]
-position = Vector2(2600, 619)
+[node name="Feather_07" type="Marker2D" parent="Feathers" unique_id=1553962576]
+position = Vector2(2815, 649)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_07"
 
-[node name="Feather_08" type="Marker2D" parent="Feathers"]
-position = Vector2(2960, 547)
+[node name="Feather_08" type="Marker2D" parent="Feathers" unique_id=240148048]
+position = Vector2(3126, 561)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_08"
 
-[node name="Feather_09" type="Marker2D" parent="Feathers"]
-position = Vector2(3300, 650)
+[node name="Feather_09" type="Marker2D" parent="Feathers" unique_id=623745260]
+position = Vector2(3446, 668)
 script = ExtResource("3_point")
-point_type = "feather"
 point_id = "feather_09"
 
-[node name="Coins" type="Node2D" parent="."]
+[node name="Coins" type="Node2D" parent="." unique_id=1615057909]
 
-[node name="Coin_01" type="Marker2D" parent="Coins"]
-position = Vector2(700, 765)
+[node name="Coin_01" type="Marker2D" parent="Coins" unique_id=342382676]
+position = Vector2(711, 552)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_01"
 
-[node name="Coin_02" type="Marker2D" parent="Coins"]
-position = Vector2(1050, 765)
+[node name="Coin_02" type="Marker2D" parent="Coins" unique_id=32710768]
+position = Vector2(1009, 756)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_02"
 
-[node name="Coin_03" type="Marker2D" parent="Coins"]
-position = Vector2(1390, 765)
+[node name="Coin_03" type="Marker2D" parent="Coins" unique_id=1740701594]
+position = Vector2(1458, 756)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_03"
 
-[node name="Coin_04" type="Marker2D" parent="Coins"]
-position = Vector2(1740, 765)
+[node name="Coin_04" type="Marker2D" parent="Coins" unique_id=107063357]
+position = Vector2(2260, 361)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_04"
 
-[node name="Coin_05" type="Marker2D" parent="Coins"]
-position = Vector2(2100, 765)
+[node name="Coin_05" type="Marker2D" parent="Coins" unique_id=127695226]
+position = Vector2(2246, 742)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_05"
 
-[node name="Coin_06" type="Marker2D" parent="Coins"]
-position = Vector2(2440, 765)
+[node name="Coin_06" type="Marker2D" parent="Coins" unique_id=1268333446]
+position = Vector2(2458, 744)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_06"
 
-[node name="Coin_07" type="Marker2D" parent="Coins"]
-position = Vector2(2780, 660)
+[node name="Coin_07" type="Marker2D" parent="Coins" unique_id=992591797]
+position = Vector2(2737, 477)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_07"
 
-[node name="Coin_08" type="Marker2D" parent="Coins"]
-position = Vector2(3180, 660)
+[node name="Coin_08" type="Marker2D" parent="Coins" unique_id=964607643]
+position = Vector2(3191, 477)
 script = ExtResource("3_point")
 point_type = "coin"
 point_id = "coin_08"
 
-[node name="Special" type="Node2D" parent="."]
+[node name="Special" type="Node2D" parent="." unique_id=1166991659]
 
-[node name="PlayerStart" type="Marker2D" parent="Special"]
+[node name="PlayerStart" type="Marker2D" parent="Special" unique_id=1832262541]
 position = Vector2(120, 730)
 script = ExtResource("3_point")
 point_type = "player_start"
 point_id = "player_start"
 
-[node name="CentralWindRing" type="Marker2D" parent="Special"]
-position = Vector2(2050, 630)
+[node name="CentralWindRing" type="Marker2D" parent="Special" unique_id=611855252]
+position = Vector2(2156, 703)
 script = ExtResource("3_point")
 point_type = "wind_ring"
 point_id = "central_wind_ring"
 
-[node name="NextLevelPortal" type="Marker2D" parent="Special"]
-position = Vector2(3420, 620)
+[node name="NextLevelPortal" type="Marker2D" parent="Special" unique_id=1375311634]
+position = Vector2(3607, 668)
 script = ExtResource("3_point")
 point_type = "portal"
 point_id = "portal"
 
-[node name="Checkpoints" type="Node2D" parent="."]
+[node name="Checkpoints" type="Node2D" parent="." unique_id=240099675]
 
-[node name="Checkpoint_Start" type="Marker2D" parent="Checkpoints"]
+[node name="Checkpoint_Start" type="Marker2D" parent="Checkpoints" unique_id=1374987038]
 position = Vector2(120, 730)
 script = ExtResource("3_point")
 point_type = "checkpoint"
 point_id = "start"
 
-[node name="Checkpoint_MidWindRing" type="Marker2D" parent="Checkpoints"]
-position = Vector2(2050, 720)
+[node name="Checkpoint_MidWindRing" type="Marker2D" parent="Checkpoints" unique_id=560924688]
+position = Vector2(2156, 756)
 script = ExtResource("3_point")
 point_type = "checkpoint"
 point_id = "mid_wind_ring"
 
-[node name="Checkpoint_BeforeTower" type="Marker2D" parent="Checkpoints"]
-position = Vector2(2960, 560)
+[node name="Checkpoint_BeforeTower" type="Marker2D" parent="Checkpoints" unique_id=1845480238]
+position = Vector2(3327, 743)
 script = ExtResource("3_point")
 point_type = "checkpoint"
 point_id = "before_tower"

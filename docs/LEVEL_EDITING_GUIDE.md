@@ -36,6 +36,18 @@
 - 大地面平台通常不参与路线节奏检查，`route_platform = false`。
 - 浮空平台和终点薄平台通常保持 `route_platform = true`。
 
+## 装饰贴图如何跟随平台
+
+运行时的草丛、晶体、花、石块、终点高塔、NPC 和奖励宝箱会按平台名自动贴回对应位置。微调平台时请尽量保留这些平台 ID：
+
+| 平台 ID | 影响内容 |
+| --- | --- |
+| `tower_finish` | 终点高塔、NPC、终点小装饰 |
+| `tower_ground` | 奖励宝箱、终点地面装饰 |
+| `start_step`、`floating_a`、`floating_b`、`floating_c`、`portal_left`、`portal_right`、`tower_step_a`、`tower_step_b` | 草丛、晶体、路线小装饰 |
+
+如果只是拖动位置或修改 `platform_size`，贴图会跟随。不要随意改 `platform_name`，否则运行时找不到对应平台，装饰会回退到默认位置。
+
 ## 收集物和特殊点
 
 点位节点使用 `EditableLevelPoint.gd`。

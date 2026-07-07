@@ -5,7 +5,7 @@ signal reward_claimed(score_value: int, energy_value: float)
 @export var score_value := 300
 @export var energy_value := 45.0
 
-const CLOSED_SPRITE_Y := -8.0
+const CLOSED_SPRITE_Y := 0.0
 const OPEN_SPRITE_Y := -22.0
 
 var opened := false

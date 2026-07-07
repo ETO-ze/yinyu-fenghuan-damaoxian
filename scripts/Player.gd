@@ -115,7 +115,12 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_released("jump") and velocity.y < 0.0:
 		velocity.y *= JUMP_CUT_MULTIPLIER
 
+	var was_grounded := is_on_floor()
+	var previous_vertical_velocity := velocity.y
 	move_and_slide()
+
+	if not was_grounded and is_on_floor() and previous_vertical_velocity > 150.0:
+		_play_sfx("land")
 
 	# Falling below the cloud layer costs one life and returns the hero to the start.
 	if global_position.y > 1060.0:
@@ -167,6 +172,7 @@ func celebrate() -> void:
 
 
 func _respawn() -> void:
+	_play_sfx("fall_respawn")
 	velocity = Vector2.ZERO
 	lives -= 1
 	if lives <= 0:
@@ -233,7 +239,7 @@ func _build_generated_sprite() -> void:
 		"res://assets/characters/hero_silverwing_run_09.png",
 		"res://assets/characters/hero_silverwing_run_10.png",
 		"res://assets/characters/hero_silverwing_run_11.png"
-	], 18.0)
+	], 22.0)
 	_add_sprite_animation(frames, "dash", [
 		"res://assets/characters/hero_silverwing_dash_00.png",
 		"res://assets/characters/hero_silverwing_dash_01.png",
@@ -241,7 +247,7 @@ func _build_generated_sprite() -> void:
 		"res://assets/characters/hero_silverwing_dash_03.png",
 		"res://assets/characters/hero_silverwing_dash_04.png",
 		"res://assets/characters/hero_silverwing_dash_05.png"
-	], 16.0)
+	], 20.0)
 	_add_sprite_animation(frames, "crouch", [
 		"res://assets/characters/hero_silverwing_crouch_00.png",
 		"res://assets/characters/hero_silverwing_crouch_01.png",

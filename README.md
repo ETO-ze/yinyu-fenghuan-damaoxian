@@ -2,6 +2,46 @@
 
 Godot 4.x / GDScript 制作的最小可玩 2D 横版平台 Demo。
 
+## 当前进度
+
+当前版本是 v0.2 原型整理版：核心流程已经跑通，重点是验证竖屏横版平台玩法、美术方向和关卡编辑方式。
+
+- 可运行入口：`scenes/StartMenu.tscn`。
+- 核心关卡：`scenes/Main.tscn`，运行时优先读取 `scenes/levels/Level01Editable.tscn`。
+- 玩家能力：移动、跳跃、滑翔、持续疾跑、下蹲、掉落重生、生命归零失败。
+- 关卡目标：至少收集 5 根羽毛后，到右侧高塔终点传送门通关；收集第 5 根羽毛不会自动通关。
+- 可编辑内容：第一关平台、羽毛、金币、出生点、传送门、检查点可在 Godot 2D 编辑器里拖动。
+- 跟随平台的装饰：草丛、晶体、花、石块、终点塔楼、NPC、奖励宝箱会根据平台名自动归位。
+- 音频状态：当前使用原创/占位 16-bit 风格 BGM 和 SFX；外部歌曲改编方向暂时搁置，未作为正式资源路线。
+
+## 如何运行
+
+1. 使用 Godot 4.x 打开项目根目录。
+2. 确认主场景为 `scenes/StartMenu.tscn`。
+3. 点击编辑器右上角运行按钮。
+4. 开始界面只允许点击“开始游戏”进入关卡。
+
+本机测试使用 Godot `4.7.stable`。项目设置是竖屏比例 `480x854`。
+
+## 给下一轮 GPT 分析的重点
+
+如果把仓库交给 GPT 分析，建议优先看这些文件：
+
+- `README.md`：当前总览。
+- `docs/PROJECT_REVIEW.md`：上一轮项目审查和重构说明。
+- `docs/LEVEL_EDITING_GUIDE.md`：第一关可视化编辑方式。
+- `docs/PLAYTEST_CHECKLIST.md`：人工测试清单。
+- `scenes/levels/Level01Editable.tscn`：第一关可编辑平台和点位。
+- `scripts/Main.gd`：关卡生成、装饰归位、胜利/失败流程。
+- `scripts/Player.gd`：移动、跳跃、滑翔、疾跑、下蹲和掉落逻辑。
+- `scripts/AudioManager.gd`：BGM/SFX 入口。
+
+当前已知设计取舍：
+
+- `portal_right -> tower_step_a` 的平台间距偏大，是为了保留一点挑战性，暂时不要自动改短。
+- 部分美术仍是生成素材/占位素材，重点先看风格一致性和功能可读性。
+- 音乐方向未定，先不要把主题曲作为主要评审点。
+
 ## 文件结构
 
 ```text
@@ -11,6 +51,8 @@ silverwing_wind_ring_demo/
   scenes/
     StartMenu.tscn
     Main.tscn
+    levels/
+      Level01Editable.tscn
   scripts/
     StartMenu.gd
     Main.gd
@@ -19,6 +61,16 @@ silverwing_wind_ring_demo/
     Collectible.gd
     Coin.gd
     NextLevelPortal.gd
+    RewardChest.gd
+    Checkpoint.gd
+    AudioManager.gd
+    SaveManager.gd
+    data/
+      LevelData.gd
+    editor/
+      EditableLevelRoot.gd
+      EditableLevelPoint.gd
+      EditablePlatform.gd
   assets/
     characters/
     npcs/
@@ -126,11 +178,15 @@ silverwing_wind_ring_demo/
 - `assets/backgrounds/bg_tiny_sky_decor_*.png`：小型远景浮空装饰，替换比例不协调的近景建筑/遗迹。
 - `assets/environment/tower_finish_generated.png`：右侧终点高塔正式视觉稿。
 - `assets/environment/prop_blue_lantern_00.png`：蓝焰灯笼关卡道具。
-- `assets/audio/sfx/*.wav`：菜单、跳跃、疾跑、收集、传送门、宝箱的 16-bit 风格占位音效。
+- `assets/audio/sfx/*.wav`：菜单、跳跃、落地、掉落重生、疾跑、收集、传送门、宝箱的 16-bit 风格占位音效。
 - `assets/audio/bgm/title_theme.wav`、`assets/audio/bgm/level_01.wav`：开始界面和第一关的轻量循环 BGM 占位。
 
 ## 最近修复
 
+- 新增可视化关卡结构：`Level01Editable.tscn` 中的平台和点位可以直接拖动。
+- 草丛、晶体、花、石块、终点高塔、NPC、奖励宝箱改为按平台名和传送门位置实时归位。
+- BGM/SFX 接入 `AudioManager.gd`，BGM 运行时强制循环；新增掉落重生音效 `fall_respawn.wav`。
+- 跑步和疾跑帧增加腿部动作细节，减少原先只上下晃动的观感。
 - 修复主角移动时头部/羽翼贴边遮挡：重新切分 `hero_silverwing_*.png` 为 320x320 透明帧并保留安全留白。
 - 提高玩家显示层级，避免被平台美术层压住。
 - 保持平台碰撞矩形不变，仅在视觉层叠加浮空平台素材，降低关卡 bug 风险。

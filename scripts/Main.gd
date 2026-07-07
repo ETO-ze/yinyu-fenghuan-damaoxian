@@ -35,6 +35,7 @@ func _ready() -> void:
 	if level_data == null:
 		push_error("Main: failed to load first level data.")
 		return
+	_sync_level_bounds_to_content()
 	var save_manager := get_node_or_null("/root/SaveManager")
 	if save_manager != null:
 		var loaded_save: Variant = save_manager.call("consume_pending_continue")
@@ -254,15 +255,18 @@ func _spawn_portal() -> void:
 
 
 func _spawn_decorations() -> void:
-	_add_decorative_wind_ring(level_data.central_wind_ring_position)
-	_add_wind_banner(Vector2(2075, 760))
-	_add_finish_tower(Vector2(3420, 710))
-	_add_npc(Vector2(3272, 732), "bird")
-	_add_npc(Vector2(3500, 732), "rabbit")
-	_add_npc(Vector2(3388, 736), "hood")
-	_spawn_reward_chest(Vector2(3610, 760))
-	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", Vector2(122, 702), Vector2(0.46, 0.46), 7)
-	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", Vector2(2085, 742), Vector2(0.42, 0.42), 7)
+	var wind_ring_pos := level_data.central_wind_ring_position
+	var tower_base := _platform_center_or("tower_finish", level_data.portal_position + Vector2(0, 90))
+
+	_add_decorative_wind_ring(wind_ring_pos)
+	_add_wind_banner(wind_ring_pos + Vector2(25, 130))
+	_add_finish_tower(tower_base)
+	_add_npc(_platform_surface_pos("tower_finish", -0.39, -6.0, tower_base + Vector2(-140, -6)), "bird")
+	_add_npc(_platform_surface_pos("tower_finish", 0.35, -6.0, tower_base + Vector2(126, -6)), "rabbit")
+	_add_npc(_platform_surface_pos("tower_finish", 0.00, -6.0, tower_base + Vector2(0, -6)), "hood")
+	_spawn_reward_chest(_platform_surface_pos("tower_ground", 0.32, -16.0, level_data.portal_position + Vector2(190, 92)))
+	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", level_data.player_start + Vector2(2, -28), Vector2(0.46, 0.46), 7)
+	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", wind_ring_pos + Vector2(35, 112), Vector2(0.42, 0.42), 7)
 	_spawn_platform_props()
 
 
@@ -278,41 +282,77 @@ func _spawn_reward_chest(pos: Vector2) -> void:
 
 func _spawn_platform_props() -> void:
 	# Small reusable props keep platforms from repeating one visual silhouette.
-	var grass_points := [
-		Vector2(515, 686), Vector2(880, 616), Vector2(1260, 548),
-		Vector2(1592, 606), Vector2(1910, 538), Vector2(2268, 588),
-		Vector2(2605, 646), Vector2(2968, 574), Vector2(3318, 676)
+	var grass_specs := [
+		["start_step", -0.28], ["floating_a", -0.14], ["floating_b", 0.10],
+		["floating_c", -0.05], ["portal_left", -0.18], ["portal_right", 0.08],
+		["tower_step_a", -0.10], ["tower_step_b", 0.12], ["tower_finish", -0.28]
 	]
-	for i in range(grass_points.size()):
-		var path := "res://assets/environment/prop_grass_tuft_%02d.png" % (i % 2)
-		_add_generated_sprite(path, grass_points[i], Vector2(0.72, 0.72), 8)
+	for i in range(grass_specs.size()):
+		var grass: Array = grass_specs[i]
+		var path := "res://assets/environment/prop_grass_tuft_%02d.png" % (2 + (i % 3))
+		_add_surface_sprite(str(grass[0]), float(grass[1]), -11.0, path, Vector2(0.34, 0.34), 8)
 
-	var crystal_points := [
-		Vector2(610, 685), Vector2(1340, 548), Vector2(1998, 538),
-		Vector2(2670, 646), Vector2(3376, 676)
+	var crystal_specs := [
+		["start_step", 0.36], ["floating_b", 0.40], ["portal_left", 0.38],
+		["tower_step_a", 0.32], ["tower_finish", 0.38]
 	]
-	for i in range(crystal_points.size()):
-		var path := "res://assets/environment/prop_crystal_post_%02d.png" % (i % 2)
-		_add_generated_sprite(path, crystal_points[i], Vector2(0.42, 0.42), 7)
+	for i in range(crystal_specs.size()):
+		var crystal: Array = crystal_specs[i]
+		var path := "res://assets/environment/prop_crystal_post_%02d.png" % (2 + (i % 3))
+		_add_surface_sprite(str(crystal[0]), float(crystal[1]), -23.0, path, Vector2(0.28, 0.28), 7)
 
-	var flower_points := [
-		Vector2(310, 774), Vector2(1160, 774), Vector2(2150, 774),
-		Vector2(2878, 568), Vector2(3480, 674)
+	var flower_specs := [
+		["start_ground", -0.34], ["approach_ground", -0.16], ["portal_ground", -0.06],
+		["tower_step_b", -0.35], ["tower_finish", 0.18]
 	]
-	for i in range(flower_points.size()):
+	for i in range(flower_specs.size()):
+		var flower: Array = flower_specs[i]
 		var path := "res://assets/environment/prop_flower_cluster_%02d.png" % (i % 2)
-		_add_generated_sprite(path, flower_points[i], Vector2(0.34, 0.34), 8)
+		_add_surface_sprite(str(flower[0]), float(flower[1]), -12.0, path, Vector2(0.34, 0.34), 8)
 
-	var rock_points := [
-		Vector2(430, 776), Vector2(1710, 776), Vector2(2475, 776),
-		Vector2(3198, 674)
+	var rock_specs := [
+		["start_ground", -0.04], ["approach_ground", 0.44],
+		["portal_ground", 0.34], ["tower_finish", -0.42]
 	]
-	for i in range(rock_points.size()):
+	for i in range(rock_specs.size()):
+		var rock: Array = rock_specs[i]
 		var path := "res://assets/environment/prop_rock_cluster_%02d.png" % (i % 2)
-		_add_generated_sprite(path, rock_points[i], Vector2(0.30, 0.30), 7)
+		_add_surface_sprite(str(rock[0]), float(rock[1]), -10.0, path, Vector2(0.30, 0.30), 7)
 
-	_add_generated_sprite("res://assets/environment/prop_chain_arch_00.png", Vector2(3536, 688), Vector2(0.28, 0.28), 6)
-	_add_generated_sprite("res://assets/environment/prop_cloud_bird_00.png", Vector2(3680, 505), Vector2(0.30, 0.30), -60)
+	_add_generated_sprite("res://assets/environment/prop_chain_arch_00.png", _platform_surface_pos("tower_finish", 0.33, -5.0, level_data.portal_position + Vector2(115, 20)), Vector2(0.28, 0.28), 6)
+	_add_generated_sprite("res://assets/environment/prop_cloud_bird_00.png", _platform_center_or("tower_finish", level_data.portal_position) + Vector2(260, -205), Vector2(0.30, 0.30), -60)
+
+
+func _sync_level_bounds_to_content() -> void:
+	var right_edge := level_data.level_width
+	for data in level_data.platform_layout:
+		right_edge = max(right_edge, _platform_right_x(data) + 180.0)
+	right_edge = max(right_edge, level_data.portal_position.x + 260.0)
+	level_data.level_width = right_edge
+
+
+func _platform_center_or(platform_name: String, fallback: Vector2) -> Vector2:
+	var data := level_data.get_platform_by_name(platform_name)
+	if data.is_empty():
+		return fallback
+	return data.get("center", fallback)
+
+
+func _platform_surface_pos(platform_name: String, x_ratio: float, y_offset: float, fallback: Vector2) -> Vector2:
+	var data := level_data.get_platform_by_name(platform_name)
+	if data.is_empty():
+		return fallback
+
+	var center: Vector2 = data.get("center", fallback)
+	var size: Vector2 = data.get("size", Vector2.ZERO)
+	return Vector2(center.x + size.x * x_ratio, center.y - size.y * 0.5 + y_offset)
+
+
+func _add_surface_sprite(platform_name: String, x_ratio: float, y_offset: float, path: String, sprite_scale: Vector2, z: int) -> bool:
+	var fallback := _platform_center_or(platform_name, Vector2.ZERO)
+	if fallback == Vector2.ZERO:
+		return false
+	return _add_generated_sprite(path, _platform_surface_pos(platform_name, x_ratio, y_offset, fallback), sprite_scale, z)
 
 
 func _create_platform(center: Vector2, size: Vector2, kind: String) -> void:

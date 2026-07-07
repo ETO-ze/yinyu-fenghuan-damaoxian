@@ -5,6 +5,7 @@ const SFX_PATHS := {
 	"menu_confirm": "res://assets/audio/sfx/menu_confirm.wav",
 	"jump": "res://assets/audio/sfx/jump.wav",
 	"land": "res://assets/audio/sfx/land.wav",
+	"fall_respawn": "res://assets/audio/sfx/fall_respawn.wav",
 	"dash": "res://assets/audio/sfx/dash.wav",
 	"collect_feather": "res://assets/audio/sfx/collect_feather.wav",
 	"collect_coin": "res://assets/audio/sfx/collect_coin.wav",
@@ -61,7 +62,7 @@ func play_bgm(name: String) -> void:
 		_warn_once("unknown_bgm_" + name, "AudioManager: unknown bgm: %s" % name)
 		return
 
-	var stream := _load_audio_stream(BGM_PATHS[name])
+	var stream := _load_bgm_stream(BGM_PATHS[name])
 	if stream == null:
 		_warn_once("missing_bgm_" + name, "AudioManager: missing bgm resource: %s" % BGM_PATHS[name])
 		return
@@ -90,6 +91,14 @@ func _load_audio_stream(path: String) -> AudioStream:
 	if not ResourceLoader.exists(path):
 		return null
 	return load(path) as AudioStream
+
+
+func _load_bgm_stream(path: String) -> AudioStream:
+	var stream := _load_audio_stream(path)
+	if stream is AudioStreamWAV:
+		var wav := stream as AudioStreamWAV
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	return stream
 
 
 func _warn_once(key: String, message: String) -> void:
