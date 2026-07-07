@@ -18,6 +18,10 @@ config/name="银羽风环大冒险 Demo"
 run/main_scene="res://scenes/StartMenu.tscn"
 config/features=PackedStringArray("4.7")
 
+[autoload]
+
+SaveManager="*res://scripts/SaveManager.gd"
+
 [display]
 
 window/size/viewport_width=480

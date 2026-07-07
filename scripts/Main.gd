@@ -6,6 +6,7 @@ const COIN_SCRIPT := preload("res://scripts/Coin.gd")
 const PORTAL_SCRIPT := preload("res://scripts/NextLevelPortal.gd")
 const CHEST_SCRIPT := preload("res://scripts/RewardChest.gd")
 const LEVEL_LOADER_SCRIPT := preload("res://scripts/LevelLoader.gd")
+const CHECKPOINT_SCRIPT := preload("res://scripts/Checkpoint.gd")
 
 const MAX_SAFE_PLATFORM_RISE := 92.0
 const MIN_INTERESTING_PLATFORM_GAP := 110.0
@@ -22,6 +23,8 @@ var player_lives := 3
 var player_energy := 100.0
 var player_score := 0
 var player_feathers := 0
+var current_checkpoint_id := "start"
+var pending_loaded_save: Dictionary = {}
 
 @onready var world: Node2D = $World
 
@@ -32,6 +35,11 @@ func _ready() -> void:
 	if level_data == null:
 		push_error("Main: failed to load first level data.")
 		return
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null:
+		var loaded_save: Variant = save_manager.call("consume_pending_continue")
+		if typeof(loaded_save) == TYPE_DICTIONARY:
+			pending_loaded_save = loaded_save
 
 	hud = $HUD
 	_build_parallax_background()
@@ -39,10 +47,12 @@ func _ready() -> void:
 	_validate_level_layout()
 	_build_level()
 	_spawn_player()
+	_spawn_checkpoints()
 	_spawn_collectibles()
 	_spawn_coins()
 	_spawn_portal()
 	_spawn_decorations()
+	_apply_loaded_save_if_any()
 	_refresh_hud()
 
 
@@ -190,6 +200,23 @@ func _spawn_player() -> void:
 	player.connect("stats_changed", Callable(self, "_on_player_stats_changed"))
 	player.connect("inventory_changed", Callable(self, "_on_player_inventory_changed"))
 	player.connect("defeated", Callable(self, "_on_player_defeated"))
+
+
+func _spawn_checkpoints() -> void:
+	var checkpoints: Array[Dictionary] = [
+		{"id": "start", "position": level_data.player_start},
+		{"id": "mid_wind_ring", "position": Vector2(2050, 720)},
+		{"id": "before_tower", "position": Vector2(2960, 560)}
+	]
+
+	for data in checkpoints:
+		var checkpoint := Area2D.new()
+		checkpoint.name = "Checkpoint_" + str(data["id"])
+		checkpoint.set_script(CHECKPOINT_SCRIPT)
+		checkpoint.global_position = data["position"]
+		checkpoint.set("checkpoint_id", str(data["id"]))
+		world.add_child(checkpoint)
+		checkpoint.connect("checkpoint_activated", Callable(self, "_on_checkpoint_activated"))
 
 
 func _spawn_collectibles() -> void:
@@ -680,6 +707,52 @@ func _on_player_inventory_changed(score: int, feathers: int) -> void:
 	player_feathers = feathers
 	if portal:
 		portal.call("update_feathers", feathers)
+	_refresh_hud()
+
+
+func _on_checkpoint_activated(checkpoint_id: String, spawn_position: Vector2) -> void:
+	current_checkpoint_id = checkpoint_id
+	if hud:
+		hud.call("show_hint", "风之印记已记录")
+
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null and level_data != null and player != null:
+		var save_data_variant: Variant = save_manager.call("build_save_data", level_data.level_id, current_checkpoint_id, player, elapsed, {
+			"player_position_x": spawn_position.x,
+			"player_position_y": spawn_position.y
+		})
+		if typeof(save_data_variant) == TYPE_DICTIONARY:
+			save_manager.call("save_game", save_data_variant)
+
+
+func _apply_loaded_save_if_any() -> void:
+	if pending_loaded_save.is_empty():
+		return
+	if player == null or level_data == null:
+		return
+
+	current_checkpoint_id = str(pending_loaded_save.get("checkpoint_id", "start"))
+
+	var x := float(pending_loaded_save.get("player_position_x", level_data.player_start.x))
+	var y := float(pending_loaded_save.get("player_position_y", level_data.player_start.y))
+	var restored_position := Vector2(x, y)
+	player.global_position = restored_position
+	player.call("set_spawn_position", restored_position)
+
+	player.set("score", int(pending_loaded_save.get("score", 0)))
+	player.set("feathers", int(pending_loaded_save.get("feathers", 0)))
+	player.set("lives", int(pending_loaded_save.get("lives", 3)))
+	player.set("wing_energy", float(pending_loaded_save.get("wing_energy", 100.0)))
+	elapsed = float(pending_loaded_save.get("elapsed", 0.0))
+
+	player_score = int(player.get("score"))
+	player_feathers = int(player.get("feathers"))
+	player_lives = int(player.get("lives"))
+	player_energy = float(player.get("wing_energy"))
+
+	if portal:
+		portal.call("update_feathers", player_feathers)
+
 	_refresh_hud()
 
 

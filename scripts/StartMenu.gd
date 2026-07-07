@@ -84,6 +84,19 @@ func _show_no_save_message() -> void:
 	if _starting:
 		return
 
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null and bool(save_manager.call("request_continue")):
+		_starting = true
+		_hint_sprite.visible = false
+		_hint_label.visible = true
+		_hint_label.text = "正在读取存档..."
+		var continue_err: Error = get_tree().change_scene_to_file(MAIN_SCENE_PATH)
+		if continue_err != OK:
+			_starting = false
+			_hint_label.text = "存档读取失败，请检查 Main.tscn"
+			push_error("StartMenu failed to continue %s, error %s" % [MAIN_SCENE_PATH, continue_err])
+		return
+
 	_controls_label.visible = false
 	_hint_sprite.visible = false
 	_hint_label.visible = true
@@ -95,6 +108,10 @@ func _start_game() -> void:
 		return
 
 	_starting = true
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null:
+		save_manager.call("start_new_game")
+
 	_hint_sprite.visible = false
 	_hint_label.visible = true
 	_hint_label.text = "正在进入风之高塔..."

@@ -119,6 +119,10 @@ func get_feather_count() -> int:
 	return feathers
 
 
+func set_spawn_position(pos: Vector2) -> void:
+	spawn_position = pos
+
+
 func celebrate() -> void:
 	# Called by the portal when the level is cleared.
 	velocity = Vector2.ZERO
