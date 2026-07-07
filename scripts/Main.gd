@@ -5,55 +5,16 @@ const COLLECTIBLE_SCRIPT := preload("res://scripts/Collectible.gd")
 const COIN_SCRIPT := preload("res://scripts/Coin.gd")
 const PORTAL_SCRIPT := preload("res://scripts/NextLevelPortal.gd")
 const CHEST_SCRIPT := preload("res://scripts/RewardChest.gd")
+const LEVEL_LOADER_SCRIPT := preload("res://scripts/LevelLoader.gd")
 
-const LEVEL_NAME := "风之高塔 · 完整横版关卡"
-const REQUIRED_FEATHERS := 5
-const VIEWPORT_SIZE := Vector2(480, 854)
-const LEVEL_WIDTH := 3800.0
-const WORLD_BOTTOM := 960.0
 const MAX_SAFE_PLATFORM_RISE := 92.0
 const MIN_INTERESTING_PLATFORM_GAP := 110.0
 const MAX_SAFE_PLATFORM_GAP := 220.0
-const CENTRAL_WIND_RING_POSITION := Vector2(2050, 630)
-const PORTAL_POSITION := Vector2(3420, 620)
-const PLAYER_START := Vector2(120, 730)
-
-const PLATFORM_LAYOUT := [
-	{"name": "start_ground", "center": Vector2(270, 812), "size": Vector2(540, 72)},
-	{"name": "approach_ground", "center": Vector2(1240, 812), "size": Vector2(500, 72)},
-	{"name": "portal_ground", "center": Vector2(2220, 812), "size": Vector2(520, 72)},
-	{"name": "tower_ground", "center": Vector2(3340, 812), "size": Vector2(620, 72)},
-	{"name": "start_step", "center": Vector2(540, 718), "size": Vector2(190, 30)},
-	{"name": "floating_a", "center": Vector2(890, 648), "size": Vector2(188, 30)},
-	{"name": "floating_b", "center": Vector2(1240, 580), "size": Vector2(206, 30)},
-	{"name": "floating_c", "center": Vector2(1580, 638), "size": Vector2(220, 30)},
-	{"name": "portal_left", "center": Vector2(1920, 570), "size": Vector2(210, 30)},
-	{"name": "portal_right", "center": Vector2(2260, 620), "size": Vector2(210, 30)},
-	{"name": "tower_step_a", "center": Vector2(2600, 678), "size": Vector2(220, 30)},
-	{"name": "tower_step_b", "center": Vector2(2960, 606), "size": Vector2(210, 30)},
-	{"name": "tower_finish", "center": Vector2(3420, 710), "size": Vector2(360, 34)}
-]
-
-const FEATHER_POSITIONS := [
-	Vector2(540, 659), Vector2(890, 589), Vector2(1240, 521),
-	Vector2(1580, 579), Vector2(1920, 511), Vector2(2260, 561),
-	Vector2(2600, 619), Vector2(2960, 547), Vector2(3300, 650)
-]
-
-const COIN_POSITIONS := [
-	Vector2(700, 765), Vector2(1050, 765), Vector2(1390, 765),
-	Vector2(1740, 765), Vector2(2100, 765), Vector2(2440, 765),
-	Vector2(2780, 660), Vector2(3180, 660)
-]
-
-const ROUTE_PLATFORM_NAMES := [
-	"start_ground", "start_step", "floating_a", "floating_b", "floating_c",
-	"portal_left", "portal_right", "tower_step_a", "tower_step_b", "tower_finish"
-]
 
 var player: CharacterBody2D
 var portal: Area2D
 var hud: CanvasLayer
+var level_data: LevelData
 var elapsed := 0.0
 var victory := false
 var game_over := false
@@ -67,6 +28,10 @@ var player_feathers := 0
 func _ready() -> void:
 	# 输入映射在运行时创建，项目文件保持简单，拷贝后也能直接运行。
 	_ensure_input_actions()
+	level_data = LEVEL_LOADER_SCRIPT.load_level(LEVEL_LOADER_SCRIPT.get_first_level_id())
+	if level_data == null:
+		push_error("Main: failed to load first level data.")
+		return
 
 	hud = $HUD
 	_build_parallax_background()
@@ -136,7 +101,7 @@ func _build_parallax_background() -> void:
 		var sky := ColorRect.new()
 		sky.name = "BlueSkyFallback"
 		sky.position = Vector2(-260, -40)
-		sky.size = Vector2(VIEWPORT_SIZE.x + 520, VIEWPORT_SIZE.y + 160)
+		sky.size = Vector2(level_data.viewport_size.x + 520, level_data.viewport_size.y + 160)
 		sky.color = Color(0.24, 0.62, 0.96)
 		sky_layer.add_child(sky)
 
@@ -195,7 +160,7 @@ func _build_background_silhouettes() -> void:
 
 func _build_level() -> void:
 	# 完整横版结构：左侧起点 -> 中间浮空平台 -> 中央风环地标 -> 右侧高塔终点传送门。
-	for data in PLATFORM_LAYOUT:
+	for data in level_data.platform_layout:
 		_create_platform(data["center"], data["size"], data["name"])
 
 
@@ -204,7 +169,7 @@ func _spawn_player() -> void:
 	player.name = "Player"
 	player.z_index = 20
 	player.set_script(PLAYER_SCRIPT)
-	player.global_position = PLAYER_START
+	player.global_position = level_data.player_start
 
 	var collision := CollisionShape2D.new()
 	collision.name = "CollisionShape2D"
@@ -217,8 +182,8 @@ func _spawn_player() -> void:
 	camera.position_smoothing_speed = 7.0
 	camera.limit_left = 0
 	camera.limit_top = 0
-	camera.limit_right = int(LEVEL_WIDTH)
-	camera.limit_bottom = int(WORLD_BOTTOM)
+	camera.limit_right = int(level_data.level_width)
+	camera.limit_bottom = int(level_data.world_bottom)
 	player.add_child(camera)
 	world.add_child(player)
 
@@ -229,7 +194,7 @@ func _spawn_player() -> void:
 
 func _spawn_collectibles() -> void:
 	# 前 5 根羽毛位于终点传送门之前，玩家到达右侧高塔时可以通关。
-	for pos in FEATHER_POSITIONS:
+	for pos in level_data.feather_positions:
 		var feather := Area2D.new()
 		feather.name = "Feather"
 		feather.set_script(COLLECTIBLE_SCRIPT)
@@ -238,7 +203,7 @@ func _spawn_collectibles() -> void:
 
 
 func _spawn_coins() -> void:
-	for pos in COIN_POSITIONS:
+	for pos in level_data.coin_positions:
 		var coin := Area2D.new()
 		coin.name = "Coin"
 		coin.set_script(COIN_SCRIPT)
@@ -251,15 +216,15 @@ func _spawn_portal() -> void:
 	portal.name = "NextLevelPortal"
 	portal.z_index = 9
 	portal.set_script(PORTAL_SCRIPT)
-	portal.global_position = PORTAL_POSITION
-	portal.set("required_feathers", REQUIRED_FEATHERS)
+	portal.global_position = level_data.portal_position
+	portal.set("required_feathers", level_data.required_feathers)
 	world.add_child(portal)
 	portal.connect("victory_requested", Callable(self, "_on_victory_requested"))
 	portal.connect("locked_attempt", Callable(self, "_on_portal_locked"))
 
 
 func _spawn_decorations() -> void:
-	_add_decorative_wind_ring(CENTRAL_WIND_RING_POSITION)
+	_add_decorative_wind_ring(level_data.central_wind_ring_position)
 	_add_wind_banner(Vector2(2075, 760))
 	_add_finish_tower(Vector2(3420, 710))
 	_add_npc(Vector2(3272, 732), "bird")
@@ -443,11 +408,11 @@ func _platform_visual_surface_y(path: String) -> float:
 func _validate_level_layout() -> void:
 	# 检查主路线相邻平台的高度和边缘距离，提前发现“跳不上去”的关卡数据。
 	var by_name := {}
-	for data in PLATFORM_LAYOUT:
+	for data in level_data.platform_layout:
 		by_name[data["name"]] = data
 
 	var previous_name := ""
-	for platform_name in ROUTE_PLATFORM_NAMES:
+	for platform_name in level_data.route_platform_names:
 		if not by_name.has(platform_name):
 			push_warning("Missing route platform: %s" % platform_name)
 			continue
@@ -805,4 +770,4 @@ func _on_chest_reward_claimed(score_value: int, energy_value: float) -> void:
 
 func _refresh_hud() -> void:
 	if hud:
-		hud.call("update_stats", player_lives, player_energy, player_score, player_feathers, REQUIRED_FEATHERS, LEVEL_NAME, elapsed)
+		hud.call("update_stats", player_lives, player_energy, player_score, player_feathers, level_data.required_feathers, level_data.level_name, elapsed)
