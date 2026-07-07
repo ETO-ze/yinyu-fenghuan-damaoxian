@@ -88,6 +88,11 @@ func _show_no_save_message() -> void:
 
 	var save_manager := get_node_or_null("/root/SaveManager")
 	if save_manager != null and bool(save_manager.call("request_continue")):
+		var game_session := get_node_or_null("/root/GameSession")
+		if game_session != null:
+			var save_data: Dictionary = save_manager.get("pending_save_data")
+			game_session.call("set_from_save_data", save_data)
+
 		_play_sfx("menu_confirm")
 		_starting = true
 		_hint_sprite.visible = false
@@ -112,9 +117,13 @@ func _start_game() -> void:
 
 	_starting = true
 	_play_sfx("menu_confirm")
-	var save_manager := get_node_or_null("/root/SaveManager")
-	if save_manager != null:
-		save_manager.call("start_new_game")
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null:
+		game_session.call("start_new_game")
+	else:
+		var save_manager := get_node_or_null("/root/SaveManager")
+		if save_manager != null:
+			save_manager.call("start_new_game")
 
 	_hint_sprite.visible = false
 	_hint_label.visible = true

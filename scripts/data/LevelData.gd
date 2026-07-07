@@ -3,6 +3,7 @@ extends Resource
 
 @export var level_id: String = "level_01"
 @export var level_name: String = "风之高塔 · 完整横版关卡"
+@export var next_level_id: String = ""
 @export var required_feathers: int = 5
 
 @export var viewport_size: Vector2 = Vector2(480, 854)
@@ -35,6 +36,7 @@ func duplicate_level_data() -> LevelData:
 	var copy := LevelData.new()
 	copy.level_id = level_id
 	copy.level_name = level_name
+	copy.next_level_id = next_level_id
 	copy.required_feathers = required_feathers
 	copy.viewport_size = viewport_size
 	copy.level_width = level_width

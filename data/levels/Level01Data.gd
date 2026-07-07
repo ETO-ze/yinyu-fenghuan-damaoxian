@@ -5,6 +5,7 @@ extends LevelData
 func _init() -> void:
 	level_id = "level_01"
 	level_name = "风之高塔 · 完整横版关卡"
+	next_level_id = "level_02"
 	required_feathers = 5
 
 	viewport_size = Vector2(480, 854)
@@ -65,4 +66,10 @@ func _init() -> void:
 		"tower_step_a",
 		"tower_step_b",
 		"tower_finish"
+	]
+
+	checkpoint_layout = [
+		{"id": "start", "position": player_start},
+		{"id": "mid_wind_ring", "position": Vector2(2050, 720)},
+		{"id": "before_tower", "position": Vector2(2960, 560)}
 	]

@@ -22,6 +22,7 @@ config/features=PackedStringArray("4.7")
 
 SaveManager="*res://scripts/SaveManager.gd"
 AudioManager="*res://scripts/AudioManager.gd"
+GameSession="*res://scripts/GameSession.gd"
 
 [display]
 

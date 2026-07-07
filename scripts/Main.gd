@@ -7,6 +7,7 @@ const PORTAL_SCRIPT := preload("res://scripts/NextLevelPortal.gd")
 const CHEST_SCRIPT := preload("res://scripts/RewardChest.gd")
 const LEVEL_LOADER_SCRIPT := preload("res://scripts/LevelLoader.gd")
 const CHECKPOINT_SCRIPT := preload("res://scripts/Checkpoint.gd")
+const CLOUD_PLATFORM_SCRIPT := preload("res://scripts/platforms/CloudPlatform.gd")
 
 const MAX_SAFE_PLATFORM_RISE := 92.0
 const MIN_INTERESTING_PLATFORM_GAP := 110.0
@@ -19,6 +20,7 @@ var level_data: LevelData
 var elapsed := 0.0
 var victory := false
 var game_over := false
+var waiting_for_next_level := false
 var player_lives := 3
 var player_energy := 100.0
 var player_score := 0
@@ -31,9 +33,14 @@ var pending_loaded_save: Dictionary = {}
 func _ready() -> void:
 	# 输入映射在运行时创建，项目文件保持简单，拷贝后也能直接运行。
 	_ensure_input_actions()
-	level_data = LEVEL_LOADER_SCRIPT.load_level(LEVEL_LOADER_SCRIPT.get_first_level_id())
+	var target_level_id := LEVEL_LOADER_SCRIPT.get_first_level_id()
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null:
+		target_level_id = str(game_session.call("get_current_level_id"))
+
+	level_data = LEVEL_LOADER_SCRIPT.load_level(target_level_id)
 	if level_data == null:
-		push_error("Main: failed to load first level data.")
+		push_error("Main: failed to load level data: %s" % target_level_id)
 		return
 	_sync_level_bounds_to_content()
 	var save_manager := get_node_or_null("/root/SaveManager")
@@ -59,6 +66,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if victory and waiting_for_next_level and Input.is_action_just_pressed("confirm"):
+		_enter_next_level()
+		return
+
 	if not victory and not game_over:
 		elapsed += delta
 		_refresh_hud()
@@ -77,6 +88,8 @@ func _ensure_input_actions() -> void:
 	_add_key("dash", KEY_J)
 	_add_key("crouch", KEY_S)
 	_add_key("crouch", KEY_DOWN)
+	_add_key("confirm", KEY_ENTER)
+	_add_key("confirm", KEY_SPACE)
 
 
 func _add_key(action: String, keycode: int) -> void:
@@ -173,7 +186,8 @@ func _build_background_silhouettes() -> void:
 func _build_level() -> void:
 	# 完整横版结构：左侧起点 -> 中间浮空平台 -> 中央风环地标 -> 右侧高塔终点传送门。
 	for data in level_data.platform_layout:
-		_create_platform(data["center"], data["size"], data["name"])
+		var platform_type := str(data.get("type", "stone"))
+		_create_platform(data["center"], data["size"], data["name"], platform_type)
 
 
 func _spawn_player() -> void:
@@ -355,7 +369,11 @@ func _add_surface_sprite(platform_name: String, x_ratio: float, y_offset: float,
 	return _add_generated_sprite(path, _platform_surface_pos(platform_name, x_ratio, y_offset, fallback), sprite_scale, z)
 
 
-func _create_platform(center: Vector2, size: Vector2, kind: String) -> void:
+func _create_platform(center: Vector2, size: Vector2, kind: String, platform_type: String = "stone") -> void:
+	if platform_type == "cloud":
+		_create_cloud_platform(center, size, kind)
+		return
+
 	var body := StaticBody2D.new()
 	body.name = "Platform_" + kind
 	body.position = center
@@ -385,6 +403,16 @@ func _create_platform(center: Vector2, size: Vector2, kind: String) -> void:
 		line.default_color = Color(0.10, 0.12, 0.16, 0.7)
 		line.points = PackedVector2Array([Vector2(x, -size.y * 0.45), Vector2(x, size.y * 0.42)])
 		body.add_child(line)
+
+
+func _create_cloud_platform(center: Vector2, size: Vector2, kind: String) -> void:
+	var body := StaticBody2D.new()
+	body.name = "CloudPlatform_" + kind
+	body.position = center
+	body.z_index = 5
+	body.set_script(CLOUD_PLATFORM_SCRIPT)
+	body.set("platform_size", size)
+	world.add_child(body)
 
 
 func _add_platform_art(body: StaticBody2D, size: Vector2, kind: String) -> bool:
@@ -808,10 +836,39 @@ func _on_victory_requested() -> void:
 		return
 
 	victory = true
+	waiting_for_next_level = false
 	player.call("celebrate")
 	_create_victory_sound_placeholder()
 	hud.call("show_victory", elapsed, player_score, player_feathers)
 	_spawn_victory_burst()
+
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null:
+		game_session.call("mark_level_completed", level_data.level_id)
+
+	if level_data.next_level_id != "" and LEVEL_LOADER_SCRIPT.has_level(level_data.next_level_id):
+		waiting_for_next_level = true
+		hud.call("show_hint", "按 Enter / Space 进入下一关")
+	else:
+		hud.call("show_hint", "Demo 已完成，感谢游玩")
+
+
+func _enter_next_level() -> void:
+	if level_data == null or level_data.next_level_id == "":
+		return
+
+	var next_id := level_data.next_level_id
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null and not bool(game_session.call("start_level", next_id)):
+		hud.call("show_hint", "下一关加载失败")
+		return
+
+	waiting_for_next_level = false
+	var err: Error = get_tree().change_scene_to_file("res://scenes/Main.tscn")
+	if err != OK:
+		waiting_for_next_level = true
+		hud.call("show_hint", "下一关加载失败")
+		push_error("Main: failed to load next level %s, error %s" % [next_id, err])
 
 
 func _create_victory_sound_placeholder() -> void:

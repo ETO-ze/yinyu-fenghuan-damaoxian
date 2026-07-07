@@ -4,6 +4,7 @@ extends Node2D
 
 @export var level_id := "level_01"
 @export var level_name := "风之高塔 · 完整横版关卡"
+@export var next_level_id := "level_02"
 @export var required_feathers := 5
 @export var viewport_size := Vector2(480, 854)
 @export var level_width := 3800.0
@@ -14,6 +15,7 @@ func to_level_data() -> LevelData:
 	var data := LevelData.new()
 	data.level_id = level_id
 	data.level_name = level_name
+	data.next_level_id = next_level_id
 	data.required_feathers = required_feathers
 	data.viewport_size = viewport_size
 	data.level_width = level_width

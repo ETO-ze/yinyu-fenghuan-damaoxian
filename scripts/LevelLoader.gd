@@ -8,7 +8,8 @@ const LEVEL_SCENE_PATHS := {
 }
 
 const LEVEL_SCRIPT_PATHS := {
-	"level_01": "res://data/levels/Level01Data.gd"
+	"level_01": "res://data/levels/Level01Data.gd",
+	"level_02": "res://data/levels/Level02Data.gd"
 }
 
 

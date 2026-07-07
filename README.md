@@ -204,3 +204,12 @@ silverwing_wind_ring_demo/
 - 重做平台美术：弃用灰桥条和石块补片混搭，当前关卡统一使用 `platform_unified_*.png`，按石面可站立顶面对齐碰撞。
 - 重做主角动作：跑步扩展到 12 帧，疾跑 6 帧，蹲下 4 帧，跳跃/下落各 4 帧，滑翔 5 帧。
 - 重做关闭宝箱为 `chest_reward_closed_02.png`，尺寸、金边、蓝宝石和材质语言与开启宝箱保持一致。
+
+## v0.3 第二关接入
+
+- 新增 `scripts/GameSession.gd`，作为 autoload 管理当前关卡、继续游戏和下一关流转。
+- `LevelData` 新增 `next_level_id` 字段；第一关完成后会等待玩家按 Enter / Space，再进入 `level_02`。
+- 新增 `data/levels/Level02Data.gd`：第二关“云桥花园 · 浮云试炼”，包含更长路线、云平台、检查点、羽毛和金币布置。
+- 新增 `scripts/platforms/CloudPlatform.gd`：临时云平台会在玩家踩上后预警、消失、再恢复。
+- `LevelLoader.gd` 已注册 `level_02`；`Main.gd` 不再硬编码只读取第一关，而是从 `GameSession.current_level_id` 加载当前关卡。
+- 新增文档：`docs/LEVEL02_DESIGN.md` 和 `docs/LEVEL02_PLAYTEST_CHECKLIST.md`，用于第二关验收与后续 GPT 分析。
