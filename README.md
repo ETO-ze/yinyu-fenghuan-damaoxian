@@ -9,8 +9,10 @@ silverwing_wind_ring_demo/
   project.godot
   README.md
   scenes/
+    StartMenu.tscn
     Main.tscn
   scripts/
+    StartMenu.gd
     Main.gd
     Player.gd
     HUD.gd
@@ -26,10 +28,17 @@ silverwing_wind_ring_demo/
     backgrounds/
     effects/
     audio/
+    title/
   docs/
     PIXEL_ART_ASSET_LIST.md
     PROJECT_REVIEW.md
+    START_MENU_ART_BREAKDOWN.md
+    START_MENU_LAYOUT_GUIDE.md
     art/
+      start_menu_generated_source_v1.png
+      start_menu_full_preview_v1.png
+      start_menu_parts_contact_sheet_v1.png
+      start_menu_parts/
       silverwing_art_direction_v1.png
       silverwing_missing_texture_sheet_v3_source.png
       missing_texture_asset_preview_v3.png
@@ -48,6 +57,18 @@ silverwing_wind_ring_demo/
 
 从左侧起点出发，穿过中段浮空平台，收集至少 5 根羽毛，抵达右侧高塔终点的下一关传送门，触发“恭喜通关”。
 
+## 启动流程
+
+- 项目入口现在是 `scenes/StartMenu.tscn`。
+- 开始界面使用参考图同款竖屏像素主视觉，只有点击“开始游戏”才会进入 `scenes/Main.tscn`。
+- 开始界面素材位于 `assets/title/start_menu_background_v1.png`。
+
+## 截图
+
+![开始界面完整预览](docs/art/start_menu_full_preview_v1.png)
+
+![开始界面部件拆分](docs/art/start_menu_parts_contact_sheet_v1.png)
+
 ## 当前关卡
 
 - 左侧：起点平台。
@@ -62,6 +83,12 @@ silverwing_wind_ring_demo/
 
 - `docs/PIXEL_ART_ASSET_LIST.md`：正式像素美术资源清单、尺寸、帧数、动画状态、命名规范和目录。
 - `docs/PROJECT_REVIEW.md`：项目审查、重构说明和关卡可达性分析。
+- `docs/START_MENU_ART_BREAKDOWN.md`：开始界面资源拆分、单独部件截图路径和 Godot 接入说明。
+- `docs/START_MENU_LAYOUT_GUIDE.md`：如何在 Godot 编辑器里微调开始界面文字、点击区域和贴图节点位置。
+- `docs/art/start_menu_generated_source_v1.png`：开始界面 AI 生成源图。
+- `docs/art/start_menu_full_preview_v1.png`：带标题和菜单文字的开始界面完整预览。
+- `docs/art/start_menu_parts_contact_sheet_v1.png`：开始界面关键部件总览。
+- `docs/art/start_menu_parts/`：天空云海、标题牌、按钮组、塔楼传送门、角色宝箱、前景浮岛、文字层的单独截图。
 - `docs/art/silverwing_art_direction_v1.png`：根据参考图生成的当前美术方向稿。
 - `docs/art/silverwing_missing_texture_sheet_v3_source.png`：本轮补齐贴图的生成源稿。
 - `docs/art/missing_texture_asset_preview_v3.png`：新增贴图总览，便于检查风格统一性。

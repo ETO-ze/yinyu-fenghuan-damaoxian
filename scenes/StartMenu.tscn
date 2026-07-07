@@ -1,0 +1,121 @@
+[gd_scene format=3 uid="uid://dao8lq76sfhsi"]
+
+[ext_resource type="Script" uid="uid://brjm1cs75wsn4" path="res://scripts/StartMenu.gd" id="1_start_menu"]
+[ext_resource type="Texture2D" uid="uid://c1l1e5etsf4cm" path="res://assets/title/start_menu_background_v1.png" id="2_background"]
+[ext_resource type="Texture2D" uid="uid://cafgdxiw3k2f2" path="res://assets/title/text_title_zh_v1.png" id="3_title"]
+[ext_resource type="Texture2D" uid="uid://ceeihaoj3wosg" path="res://assets/title/text_subtitle_en_v1.png" id="4_subtitle"]
+[ext_resource type="Texture2D" uid="uid://leqn61nyhu1x" path="res://assets/title/text_button_start_v1.png" id="5_button_start"]
+[ext_resource type="Texture2D" uid="uid://cjdpkxas7fw4d" path="res://assets/title/text_button_continue_v1.png" id="6_button_continue"]
+[ext_resource type="Texture2D" uid="uid://cquy6cwcr7rh0" path="res://assets/title/text_button_settings_v1.png" id="7_button_settings"]
+[ext_resource type="Texture2D" uid="uid://di1dg373hr77u" path="res://assets/title/text_hint_click_start_v1.png" id="8_hint_click"]
+
+[node name="StartMenu" type="Control" unique_id=1465191512]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_start_menu")
+
+[node name="MenuCanvas" type="Control" parent="." unique_id=81661144]
+anchors_preset = 0
+offset_right = 480.0
+offset_bottom = 854.0
+mouse_filter = 2
+
+[node name="GeneratedPixelArtBackground" type="Sprite2D" parent="MenuCanvas" unique_id=1305069116]
+texture_filter = 1
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_background")
+centered = false
+
+[node name="TextTitle" type="Sprite2D" parent="MenuCanvas" unique_id=1419474620]
+texture_filter = 1
+position = Vector2(44, 77)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_title")
+centered = false
+
+[node name="TextSubtitle" type="Sprite2D" parent="MenuCanvas" unique_id=1463651199]
+texture_filter = 1
+position = Vector2(105, 126)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("4_subtitle")
+centered = false
+
+[node name="TextButtonStart" type="Sprite2D" parent="MenuCanvas" unique_id=1509961474]
+texture_filter = 1
+position = Vector2(129, 296)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_button_start")
+centered = false
+
+[node name="TextButtonContinue" type="Sprite2D" parent="MenuCanvas" unique_id=1467438522]
+texture_filter = 1
+position = Vector2(131, 370)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("6_button_continue")
+centered = false
+
+[node name="TextButtonSettings" type="Sprite2D" parent="MenuCanvas" unique_id=1328901586]
+texture_filter = 1
+position = Vector2(131, 440)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("7_button_settings")
+centered = false
+
+[node name="ControlsLabel" type="Label" parent="MenuCanvas" unique_id=1039763612]
+visible = false
+layout_mode = 0
+offset_left = 50.0
+offset_top = 766.0
+offset_right = 430.0
+offset_bottom = 796.0
+text = "A/D移动  Space跳跃/滑翔  Shift疾跑"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextHintClickStart" type="Sprite2D" parent="MenuCanvas" unique_id=1127207770]
+texture_filter = 1
+position = Vector2(95, 811)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("8_hint_click")
+centered = false
+
+[node name="HintStatusLabel" type="Label" parent="MenuCanvas" unique_id=1709175507]
+visible = false
+layout_mode = 0
+offset_left = 80.0
+offset_top = 807.0
+offset_right = 400.0
+offset_bottom = 839.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StartButton" type="Button" parent="MenuCanvas" unique_id=40095660]
+layout_mode = 0
+offset_left = 124.0
+offset_top = 287.0
+offset_right = 364.0
+offset_bottom = 345.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+
+[node name="ContinueButton" type="Button" parent="MenuCanvas" unique_id=1724111165]
+layout_mode = 0
+offset_left = 125.0
+offset_top = 358.0
+offset_right = 365.0
+offset_bottom = 416.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+
+[node name="SettingsButton" type="Button" parent="MenuCanvas" unique_id=808365397]
+layout_mode = 0
+offset_left = 123.0
+offset_top = 432.0
+offset_right = 363.0
+offset_bottom = 490.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
