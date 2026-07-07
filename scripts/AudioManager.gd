@@ -14,8 +14,8 @@ const SFX_PATHS := {
 }
 
 const BGM_PATHS := {
-	"title": "res://assets/audio/bgm/title_theme.ogg",
-	"level_01": "res://assets/audio/bgm/level_01.ogg"
+	"title": "res://assets/audio/bgm/title_theme.wav",
+	"level_01": "res://assets/audio/bgm/level_01.wav"
 }
 
 var _bgm_player: AudioStreamPlayer
@@ -36,6 +36,9 @@ func _ready() -> void:
 
 
 func play_sfx(name: String) -> void:
+	if _is_headless():
+		return
+
 	if not SFX_PATHS.has(name):
 		_warn_once("unknown_sfx_" + name, "AudioManager: unknown sfx: %s" % name)
 		return
@@ -51,6 +54,9 @@ func play_sfx(name: String) -> void:
 
 
 func play_bgm(name: String) -> void:
+	if _is_headless():
+		return
+
 	if not BGM_PATHS.has(name):
 		_warn_once("unknown_bgm_" + name, "AudioManager: unknown bgm: %s" % name)
 		return
@@ -91,3 +97,7 @@ func _warn_once(key: String, message: String) -> void:
 		return
 	_last_missing_warning[key] = true
 	push_warning(message)
+
+
+func _is_headless() -> bool:
+	return DisplayServer.get_name() == "headless"

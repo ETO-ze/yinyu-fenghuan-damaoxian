@@ -204,11 +204,13 @@ func _spawn_player() -> void:
 
 
 func _spawn_checkpoints() -> void:
-	var checkpoints: Array[Dictionary] = [
-		{"id": "start", "position": level_data.player_start},
-		{"id": "mid_wind_ring", "position": Vector2(2050, 720)},
-		{"id": "before_tower", "position": Vector2(2960, 560)}
-	]
+	var checkpoints: Array[Dictionary] = level_data.checkpoint_layout
+	if checkpoints.is_empty():
+		checkpoints = [
+			{"id": "start", "position": level_data.player_start},
+			{"id": "mid_wind_ring", "position": Vector2(2050, 720)},
+			{"id": "before_tower", "position": Vector2(2960, 560)}
+		]
 
 	for data in checkpoints:
 		var checkpoint := Area2D.new()

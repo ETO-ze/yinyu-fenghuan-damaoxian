@@ -34,6 +34,7 @@ silverwing_wind_ring_demo/
     PROJECT_REVIEW.md
     PLAYTEST_CHECKLIST.md
     RELEASE_CHECKLIST.md
+    LEVEL_EDITING_GUIDE.md
     START_MENU_ART_BREAKDOWN.md
     START_MENU_LAYOUT_GUIDE.md
     art/
@@ -87,6 +88,7 @@ silverwing_wind_ring_demo/
 - `docs/PROJECT_REVIEW.md`：项目审查、重构说明和关卡可达性分析。
 - `docs/PLAYTEST_CHECKLIST.md`：v0.1-demo 人工测试清单。
 - `docs/RELEASE_CHECKLIST.md`：版本发布前检查、导出建议和 GitHub Release 模板。
+- `docs/LEVEL_EDITING_GUIDE.md`：第一关平台、羽毛、金币、出生点、传送门和检查点的可视化微调说明。
 - `docs/START_MENU_ART_BREAKDOWN.md`：开始界面资源拆分、单独部件截图路径和 Godot 接入说明。
 - `docs/START_MENU_LAYOUT_GUIDE.md`：如何在 Godot 编辑器里微调开始界面文字、点击区域和贴图节点位置。
 - `docs/art/start_menu_generated_source_v1.png`：开始界面 AI 生成源图。
@@ -124,6 +126,8 @@ silverwing_wind_ring_demo/
 - `assets/backgrounds/bg_tiny_sky_decor_*.png`：小型远景浮空装饰，替换比例不协调的近景建筑/遗迹。
 - `assets/environment/tower_finish_generated.png`：右侧终点高塔正式视觉稿。
 - `assets/environment/prop_blue_lantern_00.png`：蓝焰灯笼关卡道具。
+- `assets/audio/sfx/*.wav`：菜单、跳跃、疾跑、收集、传送门、宝箱的 16-bit 风格占位音效。
+- `assets/audio/bgm/title_theme.wav`、`assets/audio/bgm/level_01.wav`：开始界面和第一关的轻量循环 BGM 占位。
 
 ## 最近修复
 

@@ -17,6 +17,7 @@ extends Resource
 @export var feather_positions: Array[Vector2] = []
 @export var coin_positions: Array[Vector2] = []
 @export var route_platform_names: Array[String] = []
+@export var checkpoint_layout: Array[Dictionary] = []
 
 
 func get_platform_by_name(platform_name: String) -> Dictionary:
@@ -45,4 +46,5 @@ func duplicate_level_data() -> LevelData:
 	copy.feather_positions = feather_positions.duplicate(true)
 	copy.coin_positions = coin_positions.duplicate(true)
 	copy.route_platform_names = route_platform_names.duplicate(true)
+	copy.checkpoint_layout = checkpoint_layout.duplicate(true)
 	return copy
