@@ -57,9 +57,11 @@ func _try_activate(body: Node) -> bool:
 
 	if count >= required_feathers:
 		activated = true
+		_play_sfx("portal_clear")
 		victory_requested.emit()
 		return true
 
+	_play_sfx("portal_locked")
 	locked_attempt.emit(required_feathers, count)
 	return false
 
@@ -98,3 +100,9 @@ func _build_generated_sprite() -> void:
 	generated_sprite.texture = texture
 	generated_sprite.scale = Vector2(0.92, 0.92)
 	add_child(generated_sprite)
+
+
+func _play_sfx(sound_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_sfx", sound_name)

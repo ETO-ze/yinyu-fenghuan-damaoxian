@@ -42,6 +42,7 @@ func _ready() -> void:
 			pending_loaded_save = loaded_save
 
 	hud = $HUD
+	_play_bgm("level_01")
 	_build_parallax_background()
 	_build_background_silhouettes()
 	_validate_level_layout()
@@ -844,3 +845,9 @@ func _on_chest_reward_claimed(score_value: int, energy_value: float) -> void:
 func _refresh_hud() -> void:
 	if hud:
 		hud.call("update_stats", player_lives, player_energy, player_score, player_feathers, level_data.required_feathers, level_data.level_name, elapsed)
+
+
+func _play_bgm(track_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_bgm", track_name)

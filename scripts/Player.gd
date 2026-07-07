@@ -9,6 +9,9 @@ const CROUCH_SPEED := 82.0
 const DASH_SPEED := 330.0
 const DASH_ENERGY_DRAIN := 13.0
 const JUMP_VELOCITY := -530.0
+const COYOTE_TIME := 0.10
+const JUMP_BUFFER_TIME := 0.12
+const JUMP_CUT_MULTIPLIER := 0.48
 const GRAVITY := 1080.0
 const GLIDE_GRAVITY := 280.0
 const GLIDE_MAX_FALL_SPEED := 95.0
@@ -30,6 +33,8 @@ var is_crouching := false
 var celebrating := false
 var defeated_state := false
 var input_locked := false
+var coyote_timer := 0.0
+var jump_buffer_timer := 0.0
 var generated_sprite: AnimatedSprite2D
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -50,6 +55,16 @@ func _physics_process(delta: float) -> void:
 		_update_sprite_animation()
 		return
 
+	if Input.is_action_just_pressed("jump"):
+		jump_buffer_timer = JUMP_BUFFER_TIME
+	else:
+		jump_buffer_timer = max(0.0, jump_buffer_timer - delta)
+
+	if is_on_floor():
+		coyote_timer = COYOTE_TIME
+	else:
+		coyote_timer = max(0.0, coyote_timer - delta)
+
 	var input_axis := Input.get_axis("move_left", "move_right")
 	if input_axis != 0.0:
 		facing = sign(input_axis)
@@ -57,8 +72,12 @@ func _physics_process(delta: float) -> void:
 	is_crouching = is_on_floor() and Input.is_action_pressed("crouch")
 	_update_collision_pose()
 
+	var was_dashing := is_dashing
 	var wants_dash := Input.is_action_pressed("dash") and input_axis != 0.0 and not is_crouching and wing_energy > 0.0
 	is_dashing = wants_dash
+	if is_dashing and not was_dashing:
+		_play_sfx("dash")
+
 	var move_speed := MOVE_SPEED
 	if is_crouching:
 		move_speed = CROUCH_SPEED
@@ -74,9 +93,15 @@ func _physics_process(delta: float) -> void:
 		if not is_dashing:
 			var regen_rate := 64.0 if is_crouching else 45.0
 			wing_energy = min(100.0, wing_energy + regen_rate * delta)
-		if not is_crouching and Input.is_action_just_pressed("jump"):
-			velocity.y = JUMP_VELOCITY
-	else:
+
+	var can_jump := not is_crouching and jump_buffer_timer > 0.0 and coyote_timer > 0.0
+	if can_jump:
+		velocity.y = JUMP_VELOCITY
+		jump_buffer_timer = 0.0
+		coyote_timer = 0.0
+		is_gliding = false
+		_play_sfx("jump")
+	elif not is_on_floor():
 		var wants_glide := Input.is_action_pressed("glide") or Input.is_action_pressed("jump")
 		is_gliding = wants_glide and velocity.y > 0.0 and wing_energy > 0.0
 		if is_gliding:
@@ -86,6 +111,9 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity.y += GRAVITY * delta
 			velocity.y = min(velocity.y, MAX_FALL_SPEED)
+
+	if Input.is_action_just_released("jump") and velocity.y < 0.0:
+		velocity.y *= JUMP_CUT_MULTIPLIER
 
 	move_and_slide()
 
@@ -121,6 +149,12 @@ func get_feather_count() -> int:
 
 func set_spawn_position(pos: Vector2) -> void:
 	spawn_position = pos
+
+
+func _play_sfx(sound_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_sfx", sound_name)
 
 
 func celebrate() -> void:

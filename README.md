@@ -32,6 +32,8 @@ silverwing_wind_ring_demo/
   docs/
     PIXEL_ART_ASSET_LIST.md
     PROJECT_REVIEW.md
+    PLAYTEST_CHECKLIST.md
+    RELEASE_CHECKLIST.md
     START_MENU_ART_BREAKDOWN.md
     START_MENU_LAYOUT_GUIDE.md
     art/
@@ -83,6 +85,8 @@ silverwing_wind_ring_demo/
 
 - `docs/PIXEL_ART_ASSET_LIST.md`：正式像素美术资源清单、尺寸、帧数、动画状态、命名规范和目录。
 - `docs/PROJECT_REVIEW.md`：项目审查、重构说明和关卡可达性分析。
+- `docs/PLAYTEST_CHECKLIST.md`：v0.1-demo 人工测试清单。
+- `docs/RELEASE_CHECKLIST.md`：版本发布前检查、导出建议和 GitHub Release 模板。
 - `docs/START_MENU_ART_BREAKDOWN.md`：开始界面资源拆分、单独部件截图路径和 Godot 接入说明。
 - `docs/START_MENU_LAYOUT_GUIDE.md`：如何在 Godot 编辑器里微调开始界面文字、点击区域和贴图节点位置。
 - `docs/art/start_menu_generated_source_v1.png`：开始界面 AI 生成源图。

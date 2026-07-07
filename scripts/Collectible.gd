@@ -38,6 +38,7 @@ func _on_body_entered(body: Node) -> void:
 	if body.has_method("add_feather"):
 		taken = true
 		body.call("add_feather", feather_value, score_value)
+		_play_sfx("collect_feather")
 		collected.emit(feather_value, score_value)
 
 		var tween := create_tween()
@@ -102,3 +103,9 @@ func _build_generated_sprite() -> void:
 	generated_sprite.scale = Vector2(0.36, 0.36)
 	add_child(generated_sprite)
 	generated_sprite.play(animation_name)
+
+
+func _play_sfx(sound_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_sfx", sound_name)

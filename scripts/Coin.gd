@@ -35,6 +35,7 @@ func _on_body_entered(body: Node) -> void:
 	if body.has_method("add_score"):
 		taken = true
 		body.call("add_score", score_value)
+		_play_sfx("collect_coin")
 		var tween := create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(self, "scale", Vector2(1.7, 1.7), 0.16)
@@ -86,3 +87,9 @@ func _draw() -> void:
 
 	draw_circle(Vector2.ZERO, 10.0, Color(1.0, 0.76, 0.16))
 	draw_circle(Vector2.ZERO, 6.0, Color(0.95, 0.55, 0.05))
+
+
+func _play_sfx(sound_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_sfx", sound_name)
