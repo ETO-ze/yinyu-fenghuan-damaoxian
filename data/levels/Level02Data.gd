@@ -9,50 +9,51 @@ func _init() -> void:
 	required_feathers = 6
 
 	viewport_size = Vector2(480, 854)
-	level_width = 4300.0
+	level_width = 4650.0
 	world_bottom = 1000.0
 
 	player_start = Vector2(120, 730)
-	central_wind_ring_position = Vector2(2100, 640)
-	portal_position = Vector2(3860, 620)
+	central_wind_ring_position = Vector2(2520, 640)
+	portal_position = Vector2(4210, 620)
 
 	platform_layout = [
-		{"name": "start_ground", "center": Vector2(280, 812), "size": Vector2(560, 72), "type": "stone"},
-		{"name": "garden_ground", "center": Vector2(1040, 812), "size": Vector2(480, 72), "type": "stone"},
-		{"name": "cloud_a", "center": Vector2(760, 650), "size": Vector2(180, 28), "type": "cloud"},
-		{"name": "cloud_b", "center": Vector2(1080, 575), "size": Vector2(180, 28), "type": "cloud"},
-		{"name": "cloud_c", "center": Vector2(1410, 640), "size": Vector2(190, 28), "type": "cloud"},
-		{"name": "rest_mid", "center": Vector2(1840, 812), "size": Vector2(520, 72), "type": "stone"},
-		{"name": "cloud_d", "center": Vector2(2200, 615), "size": Vector2(190, 28), "type": "cloud"},
-		{"name": "cloud_e", "center": Vector2(2520, 550), "size": Vector2(190, 28), "type": "cloud"},
-		{"name": "cloud_f", "center": Vector2(2860, 620), "size": Vector2(190, 28), "type": "cloud"},
-		{"name": "tower_step_a", "center": Vector2(3220, 675), "size": Vector2(220, 30), "type": "stone"},
-		{"name": "tower_ground", "center": Vector2(3740, 812), "size": Vector2(620, 72), "type": "stone"},
-		{"name": "tower_finish", "center": Vector2(3860, 710), "size": Vector2(360, 34), "type": "stone"}
+		{"name": "start_ground", "center": Vector2(260, 812), "size": Vector2(520, 72), "type": "stone"},
+		{"name": "garden_ground", "center": Vector2(860, 812), "size": Vector2(320, 72), "type": "stone"},
+		{"name": "cloud_a", "center": Vector2(1245, 705), "size": Vector2(200, 28), "type": "cloud"},
+		{"name": "cloud_b", "center": Vector2(1570, 650), "size": Vector2(200, 28), "type": "cloud"},
+		{"name": "cloud_c", "center": Vector2(1900, 710), "size": Vector2(200, 28), "type": "cloud"},
+		{"name": "rest_mid", "center": Vector2(2335, 812), "size": Vector2(430, 72), "type": "stone"},
+		{"name": "cloud_d", "center": Vector2(2765, 698), "size": Vector2(190, 28), "type": "cloud"},
+		{"name": "cloud_e", "center": Vector2(3065, 640), "size": Vector2(190, 28), "type": "cloud"},
+		{"name": "cloud_f", "center": Vector2(3385, 700), "size": Vector2(190, 28), "type": "cloud"},
+		{"name": "tower_step_a", "center": Vector2(3720, 690), "size": Vector2(240, 30), "type": "stone"},
+		{"name": "tower_ground", "center": Vector2(4140, 812), "size": Vector2(620, 72), "type": "stone"},
+		{"name": "tower_finish", "center": Vector2(4210, 710), "size": Vector2(360, 34), "type": "stone"}
 	]
 
 	feather_positions = [
-		Vector2(760, 590),
-		Vector2(1080, 515),
-		Vector2(1410, 580),
-		Vector2(2200, 555),
-		Vector2(2520, 490),
-		Vector2(2860, 560),
-		Vector2(3600, 650)
+		Vector2(1245, 645),
+		Vector2(1570, 590),
+		Vector2(1900, 650),
+		Vector2(2765, 638),
+		Vector2(3065, 580),
+		Vector2(3385, 640),
+		Vector2(3950, 650)
 	]
 
 	coin_positions = [
-		Vector2(520, 765),
-		Vector2(920, 765),
-		Vector2(1240, 540),
-		Vector2(1720, 765),
-		Vector2(2380, 530),
-		Vector2(3060, 765),
-		Vector2(3480, 765)
+		Vector2(560, 765),
+		Vector2(860, 765),
+		Vector2(1420, 635),
+		Vector2(2220, 765),
+		Vector2(2920, 625),
+		Vector2(3580, 675),
+		Vector2(3940, 765)
 	]
 
 	route_platform_names = [
 		"start_ground",
+		"garden_ground",
 		"cloud_a",
 		"cloud_b",
 		"cloud_c",
@@ -61,11 +62,12 @@ func _init() -> void:
 		"cloud_e",
 		"cloud_f",
 		"tower_step_a",
+		"tower_ground",
 		"tower_finish"
 	]
 
 	checkpoint_layout = [
 		{"id": "start", "position": player_start},
-		{"id": "garden_mid", "position": Vector2(1840, 730)},
-		{"id": "before_tower", "position": Vector2(3220, 610)}
+		{"id": "garden_mid", "position": Vector2(2335, 730)},
+		{"id": "before_tower", "position": Vector2(3720, 625)}
 	]

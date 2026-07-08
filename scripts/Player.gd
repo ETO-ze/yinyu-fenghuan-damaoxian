@@ -20,6 +20,8 @@ const STAND_RADIUS := 13.0
 const STAND_HEIGHT := 38.0
 const CROUCH_RADIUS := 12.0
 const CROUCH_HEIGHT := 26.0
+const SPRITE_BASE_SCALE := 0.21
+const SPRITE_BASE_POSITION := Vector2(0, -12)
 
 var lives := 3
 var wing_energy := 100.0
@@ -239,7 +241,7 @@ func _build_generated_sprite() -> void:
 		"res://assets/characters/hero_silverwing_run_09.png",
 		"res://assets/characters/hero_silverwing_run_10.png",
 		"res://assets/characters/hero_silverwing_run_11.png"
-	], 22.0)
+	], 18.0)
 	_add_sprite_animation(frames, "dash", [
 		"res://assets/characters/hero_silverwing_dash_00.png",
 		"res://assets/characters/hero_silverwing_dash_01.png",
@@ -288,8 +290,8 @@ func _build_generated_sprite() -> void:
 	generated_sprite.name = "HeroGeneratedSprite"
 	generated_sprite.sprite_frames = frames
 	generated_sprite.animation = "idle"
-	generated_sprite.scale = Vector2(0.21, 0.21)
-	generated_sprite.position = Vector2(0, -12)
+	generated_sprite.scale = Vector2.ONE * SPRITE_BASE_SCALE
+	generated_sprite.position = SPRITE_BASE_POSITION
 	generated_sprite.z_index = 30
 	generated_sprite.centered = true
 	add_child(generated_sprite)
@@ -338,6 +340,35 @@ func _update_sprite_animation() -> void:
 
 	if generated_sprite.animation != next_animation:
 		generated_sprite.play(next_animation)
+	_apply_animation_visual_pose(next_animation)
+
+
+func _apply_animation_visual_pose(animation_name: String) -> void:
+	var scale_value := SPRITE_BASE_SCALE
+	var sprite_position := SPRITE_BASE_POSITION
+
+	match animation_name:
+		"run":
+			scale_value = 0.22
+			sprite_position = Vector2(0, -13)
+		"dash":
+			scale_value = 0.31
+			sprite_position = Vector2(0, -22)
+		"glide":
+			scale_value = 0.26
+			sprite_position = Vector2(0, -20)
+		"jump", "fall":
+			scale_value = 0.22
+			sprite_position = Vector2(0, -14)
+		"crouch":
+			scale_value = 0.22
+			sprite_position = Vector2(0, -4)
+		_:
+			scale_value = SPRITE_BASE_SCALE
+			sprite_position = SPRITE_BASE_POSITION
+
+	generated_sprite.scale = Vector2.ONE * scale_value
+	generated_sprite.position = sprite_position
 
 
 func _draw() -> void:

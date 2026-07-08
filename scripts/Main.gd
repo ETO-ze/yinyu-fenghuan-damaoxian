@@ -295,6 +295,10 @@ func _spawn_reward_chest(pos: Vector2) -> void:
 
 
 func _spawn_platform_props() -> void:
+	if level_data != null and level_data.level_id == "level_02":
+		_spawn_level02_platform_props()
+		return
+
 	# Small reusable props keep platforms from repeating one visual silhouette.
 	var grass_specs := [
 		["start_step", -0.28], ["floating_a", -0.14], ["floating_b", 0.10],
@@ -335,6 +339,54 @@ func _spawn_platform_props() -> void:
 
 	_add_generated_sprite("res://assets/environment/prop_chain_arch_00.png", _platform_surface_pos("tower_finish", 0.33, -5.0, level_data.portal_position + Vector2(115, 20)), Vector2(0.28, 0.28), 6)
 	_add_generated_sprite("res://assets/environment/prop_cloud_bird_00.png", _platform_center_or("tower_finish", level_data.portal_position) + Vector2(260, -205), Vector2(0.30, 0.30), -60)
+
+
+func _spawn_level02_platform_props() -> void:
+	var grass_specs := [
+		["start_ground", -0.18], ["garden_ground", -0.30], ["rest_mid", -0.22],
+		["tower_step_a", -0.14], ["tower_ground", -0.32], ["tower_finish", -0.24]
+	]
+	for i in range(grass_specs.size()):
+		var grass: Array = grass_specs[i]
+		var path := "res://assets/environment/prop_grass_tuft_%02d.png" % (i % 5)
+		_add_surface_sprite(str(grass[0]), float(grass[1]), -11.0, path, Vector2(0.32, 0.32), 8)
+
+	var flower_specs := [
+		["garden_ground", 0.14], ["rest_mid", 0.28], ["tower_ground", -0.08],
+		["tower_finish", 0.20]
+	]
+	for i in range(flower_specs.size()):
+		var flower: Array = flower_specs[i]
+		var path := "res://assets/environment/prop_flower_cluster_%02d.png" % (i % 2)
+		_add_surface_sprite(str(flower[0]), float(flower[1]), -12.0, path, Vector2(0.32, 0.32), 8)
+
+	var crystal_specs := [
+		["garden_ground", 0.42], ["rest_mid", -0.40], ["tower_step_a", 0.34],
+		["tower_finish", 0.38]
+	]
+	for i in range(crystal_specs.size()):
+		var crystal: Array = crystal_specs[i]
+		var path := "res://assets/environment/prop_crystal_post_%02d.png" % (1 + (i % 4))
+		_add_surface_sprite(str(crystal[0]), float(crystal[1]), -23.0, path, Vector2(0.27, 0.27), 7)
+
+	var cloud_marker_specs := [
+		["cloud_a", -0.36], ["cloud_b", 0.36], ["cloud_c", -0.30],
+		["cloud_d", 0.34], ["cloud_e", -0.34], ["cloud_f", 0.30]
+	]
+	for marker_data in cloud_marker_specs:
+		var marker: Array = marker_data
+		_add_surface_sprite(str(marker[0]), float(marker[1]), -30.0, "res://assets/environment/prop_cloudgarden_marker_00.png", Vector2(0.34, 0.34), 8)
+
+	var rock_specs := [
+		["start_ground", 0.32], ["rest_mid", 0.04], ["tower_ground", 0.34]
+	]
+	for i in range(rock_specs.size()):
+		var rock: Array = rock_specs[i]
+		var path := "res://assets/environment/prop_rock_cluster_%02d.png" % (i % 2)
+		_add_surface_sprite(str(rock[0]), float(rock[1]), -10.0, path, Vector2(0.28, 0.28), 7)
+
+	_add_generated_sprite("res://assets/environment/prop_chain_arch_00.png", _platform_surface_pos("tower_finish", 0.34, -5.0, level_data.portal_position + Vector2(122, 20)), Vector2(0.26, 0.26), 6)
+	_add_generated_sprite("res://assets/environment/prop_cloud_bird_00.png", _platform_center_or("cloud_e", level_data.portal_position) + Vector2(160, -175), Vector2(0.28, 0.28), -60)
 
 
 func _sync_level_bounds_to_content() -> void:
@@ -438,6 +490,17 @@ func _add_platform_art(body: StaticBody2D, size: Vector2, kind: String) -> bool:
 
 
 func _select_platform_art_path(kind: String) -> String:
+	if level_data != null and level_data.level_id == "level_02":
+		if kind == "tower_finish":
+			return "res://assets/environment/platform_cloudgarden_tower_cap_00.png"
+		if kind == "tower_ground" or kind == "rest_mid":
+			return "res://assets/environment/platform_cloudgarden_long_01.png"
+		if kind == "start_ground" or kind == "garden_ground":
+			return "res://assets/environment/platform_cloudgarden_long_00.png"
+		if kind.contains("step"):
+			return "res://assets/environment/platform_cloudgarden_small_01.png"
+		return "res://assets/environment/platform_cloudgarden_small_00.png"
+
 	if kind == "tower_finish":
 		return "res://assets/environment/platform_unified_tower_cap_00.png"
 	if kind == "tower_ground":
@@ -484,6 +547,16 @@ func _aligned_platform_art_y(path: String, texture: Texture2D, size: Vector2, sc
 
 func _platform_visual_surface_y(path: String) -> float:
 	var file_name := path.get_file()
+	if file_name == "platform_cloudgarden_long_00.png":
+		return 15.0
+	if file_name == "platform_cloudgarden_long_01.png":
+		return 14.0
+	if file_name == "platform_cloudgarden_small_00.png":
+		return 21.0
+	if file_name == "platform_cloudgarden_small_01.png":
+		return 22.0
+	if file_name == "platform_cloudgarden_tower_cap_00.png":
+		return 44.0
 	if file_name == "platform_unified_small_00.png":
 		return 32.0
 	if file_name == "platform_unified_small_01.png":
