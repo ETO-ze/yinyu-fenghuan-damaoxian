@@ -23,6 +23,7 @@ func _ready() -> void:
 	_wire_button(_start_button, _start_text, Callable(self, "_start_game"))
 	_wire_button(_continue_button, _continue_text, Callable(self, "_show_no_save_message"))
 	_wire_button(_settings_button, _settings_text, Callable(self, "_toggle_controls"))
+	_play_bgm("title")
 	resized.connect(_layout_canvas)
 	_layout_canvas()
 
@@ -56,6 +57,7 @@ func _wire_button(button: Button, text_sprite: Sprite2D, callback: Callable) -> 
 	button.pressed.connect(callback)
 	button.mouse_entered.connect(func() -> void:
 		text_sprite.modulate = Color(1.0, 0.92, 0.48)
+		_play_sfx("menu_select")
 	)
 	button.mouse_exited.connect(func() -> void:
 		text_sprite.modulate = Color.WHITE
@@ -84,6 +86,25 @@ func _show_no_save_message() -> void:
 	if _starting:
 		return
 
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null and bool(save_manager.call("request_continue")):
+		var game_session := get_node_or_null("/root/GameSession")
+		if game_session != null:
+			var save_data: Dictionary = save_manager.get("pending_save_data")
+			game_session.call("set_from_save_data", save_data)
+
+		_play_sfx("menu_confirm")
+		_starting = true
+		_hint_sprite.visible = false
+		_hint_label.visible = true
+		_hint_label.text = "正在读取存档..."
+		var continue_err: Error = get_tree().change_scene_to_file(MAIN_SCENE_PATH)
+		if continue_err != OK:
+			_starting = false
+			_hint_label.text = "存档读取失败，请检查 Main.tscn"
+			push_error("StartMenu failed to continue %s, error %s" % [MAIN_SCENE_PATH, continue_err])
+		return
+
 	_controls_label.visible = false
 	_hint_sprite.visible = false
 	_hint_label.visible = true
@@ -95,6 +116,15 @@ func _start_game() -> void:
 		return
 
 	_starting = true
+	_play_sfx("menu_confirm")
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null:
+		game_session.call("start_new_game")
+	else:
+		var save_manager := get_node_or_null("/root/SaveManager")
+		if save_manager != null:
+			save_manager.call("start_new_game")
+
 	_hint_sprite.visible = false
 	_hint_label.visible = true
 	_hint_label.text = "正在进入风之高塔..."
@@ -104,3 +134,15 @@ func _start_game() -> void:
 		_starting = false
 		_hint_label.text = "关卡加载失败，请检查 Main.tscn"
 		push_error("StartMenu failed to load %s, error %s" % [MAIN_SCENE_PATH, err])
+
+
+func _play_sfx(sound_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_sfx", sound_name)
+
+
+func _play_bgm(track_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_bgm", track_name)

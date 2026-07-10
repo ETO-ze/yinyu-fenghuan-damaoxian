@@ -5,83 +5,72 @@ const COLLECTIBLE_SCRIPT := preload("res://scripts/Collectible.gd")
 const COIN_SCRIPT := preload("res://scripts/Coin.gd")
 const PORTAL_SCRIPT := preload("res://scripts/NextLevelPortal.gd")
 const CHEST_SCRIPT := preload("res://scripts/RewardChest.gd")
+const LEVEL_LOADER_SCRIPT := preload("res://scripts/LevelLoader.gd")
+const CHECKPOINT_SCRIPT := preload("res://scripts/Checkpoint.gd")
+const CLOUD_PLATFORM_SCRIPT := preload("res://scripts/platforms/CloudPlatform.gd")
 
-const LEVEL_NAME := "风之高塔 · 完整横版关卡"
-const REQUIRED_FEATHERS := 5
-const VIEWPORT_SIZE := Vector2(480, 854)
-const LEVEL_WIDTH := 3800.0
-const WORLD_BOTTOM := 960.0
 const MAX_SAFE_PLATFORM_RISE := 92.0
 const MIN_INTERESTING_PLATFORM_GAP := 110.0
 const MAX_SAFE_PLATFORM_GAP := 220.0
-const CENTRAL_WIND_RING_POSITION := Vector2(2050, 630)
-const PORTAL_POSITION := Vector2(3420, 620)
-const PLAYER_START := Vector2(120, 730)
-
-const PLATFORM_LAYOUT := [
-	{"name": "start_ground", "center": Vector2(270, 812), "size": Vector2(540, 72)},
-	{"name": "approach_ground", "center": Vector2(1240, 812), "size": Vector2(500, 72)},
-	{"name": "portal_ground", "center": Vector2(2220, 812), "size": Vector2(520, 72)},
-	{"name": "tower_ground", "center": Vector2(3340, 812), "size": Vector2(620, 72)},
-	{"name": "start_step", "center": Vector2(540, 718), "size": Vector2(190, 30)},
-	{"name": "floating_a", "center": Vector2(890, 648), "size": Vector2(188, 30)},
-	{"name": "floating_b", "center": Vector2(1240, 580), "size": Vector2(206, 30)},
-	{"name": "floating_c", "center": Vector2(1580, 638), "size": Vector2(220, 30)},
-	{"name": "portal_left", "center": Vector2(1920, 570), "size": Vector2(210, 30)},
-	{"name": "portal_right", "center": Vector2(2260, 620), "size": Vector2(210, 30)},
-	{"name": "tower_step_a", "center": Vector2(2600, 678), "size": Vector2(220, 30)},
-	{"name": "tower_step_b", "center": Vector2(2960, 606), "size": Vector2(210, 30)},
-	{"name": "tower_finish", "center": Vector2(3420, 710), "size": Vector2(360, 34)}
-]
-
-const FEATHER_POSITIONS := [
-	Vector2(540, 659), Vector2(890, 589), Vector2(1240, 521),
-	Vector2(1580, 579), Vector2(1920, 511), Vector2(2260, 561),
-	Vector2(2600, 619), Vector2(2960, 547), Vector2(3300, 650)
-]
-
-const COIN_POSITIONS := [
-	Vector2(700, 765), Vector2(1050, 765), Vector2(1390, 765),
-	Vector2(1740, 765), Vector2(2100, 765), Vector2(2440, 765),
-	Vector2(2780, 660), Vector2(3180, 660)
-]
-
-const ROUTE_PLATFORM_NAMES := [
-	"start_ground", "start_step", "floating_a", "floating_b", "floating_c",
-	"portal_left", "portal_right", "tower_step_a", "tower_step_b", "tower_finish"
-]
 
 var player: CharacterBody2D
 var portal: Area2D
 var hud: CanvasLayer
+var level_data: LevelData
 var elapsed := 0.0
 var victory := false
 var game_over := false
+var waiting_for_next_level := false
 var player_lives := 3
 var player_energy := 100.0
 var player_score := 0
 var player_feathers := 0
+var current_checkpoint_id := "start"
+var pending_loaded_save: Dictionary = {}
 
 @onready var world: Node2D = $World
 
 func _ready() -> void:
 	# 输入映射在运行时创建，项目文件保持简单，拷贝后也能直接运行。
 	_ensure_input_actions()
+	var target_level_id := LEVEL_LOADER_SCRIPT.get_first_level_id()
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null:
+		target_level_id = str(game_session.call("get_current_level_id"))
+
+	level_data = LEVEL_LOADER_SCRIPT.load_level(target_level_id)
+	if level_data == null:
+		push_error("Main: failed to load level data: %s" % target_level_id)
+		return
+	_sync_level_bounds_to_content()
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null:
+		var loaded_save: Variant = save_manager.call("consume_pending_continue")
+		if typeof(loaded_save) == TYPE_DICTIONARY:
+			pending_loaded_save = loaded_save
 
 	hud = $HUD
+	# The current chapter uses the shared Pixel Dungeon theme; AudioManager keeps it looping.
+	_play_bgm("level_02" if level_data.level_id == "level_02" else "level_01")
 	_build_parallax_background()
 	_build_background_silhouettes()
 	_validate_level_layout()
 	_build_level()
 	_spawn_player()
+	_spawn_checkpoints()
 	_spawn_collectibles()
 	_spawn_coins()
 	_spawn_portal()
 	_spawn_decorations()
+	_apply_loaded_save_if_any()
 	_refresh_hud()
 
 
 func _process(delta: float) -> void:
+	if victory and waiting_for_next_level and Input.is_action_just_pressed("confirm"):
+		_enter_next_level()
+		return
+
 	if not victory and not game_over:
 		elapsed += delta
 		_refresh_hud()
@@ -100,6 +89,8 @@ func _ensure_input_actions() -> void:
 	_add_key("dash", KEY_J)
 	_add_key("crouch", KEY_S)
 	_add_key("crouch", KEY_DOWN)
+	_add_key("confirm", KEY_ENTER)
+	_add_key("confirm", KEY_SPACE)
 
 
 func _add_key(action: String, keycode: int) -> void:
@@ -136,7 +127,7 @@ func _build_parallax_background() -> void:
 		var sky := ColorRect.new()
 		sky.name = "BlueSkyFallback"
 		sky.position = Vector2(-260, -40)
-		sky.size = Vector2(VIEWPORT_SIZE.x + 520, VIEWPORT_SIZE.y + 160)
+		sky.size = Vector2(level_data.viewport_size.x + 520, level_data.viewport_size.y + 160)
 		sky.color = Color(0.24, 0.62, 0.96)
 		sky_layer.add_child(sky)
 
@@ -195,8 +186,9 @@ func _build_background_silhouettes() -> void:
 
 func _build_level() -> void:
 	# 完整横版结构：左侧起点 -> 中间浮空平台 -> 中央风环地标 -> 右侧高塔终点传送门。
-	for data in PLATFORM_LAYOUT:
-		_create_platform(data["center"], data["size"], data["name"])
+	for data in level_data.platform_layout:
+		var platform_type := str(data.get("type", "stone"))
+		_create_platform(data["center"], data["size"], data["name"], platform_type)
 
 
 func _spawn_player() -> void:
@@ -204,7 +196,7 @@ func _spawn_player() -> void:
 	player.name = "Player"
 	player.z_index = 20
 	player.set_script(PLAYER_SCRIPT)
-	player.global_position = PLAYER_START
+	player.global_position = level_data.player_start
 
 	var collision := CollisionShape2D.new()
 	collision.name = "CollisionShape2D"
@@ -217,8 +209,8 @@ func _spawn_player() -> void:
 	camera.position_smoothing_speed = 7.0
 	camera.limit_left = 0
 	camera.limit_top = 0
-	camera.limit_right = int(LEVEL_WIDTH)
-	camera.limit_bottom = int(WORLD_BOTTOM)
+	camera.limit_right = int(level_data.level_width)
+	camera.limit_bottom = int(level_data.world_bottom)
 	player.add_child(camera)
 	world.add_child(player)
 
@@ -227,9 +219,28 @@ func _spawn_player() -> void:
 	player.connect("defeated", Callable(self, "_on_player_defeated"))
 
 
+func _spawn_checkpoints() -> void:
+	var checkpoints: Array[Dictionary] = level_data.checkpoint_layout
+	if checkpoints.is_empty():
+		checkpoints = [
+			{"id": "start", "position": level_data.player_start},
+			{"id": "mid_wind_ring", "position": Vector2(2050, 720)},
+			{"id": "before_tower", "position": Vector2(2960, 560)}
+		]
+
+	for data in checkpoints:
+		var checkpoint := Area2D.new()
+		checkpoint.name = "Checkpoint_" + str(data["id"])
+		checkpoint.set_script(CHECKPOINT_SCRIPT)
+		checkpoint.global_position = data["position"]
+		checkpoint.set("checkpoint_id", str(data["id"]))
+		world.add_child(checkpoint)
+		checkpoint.connect("checkpoint_activated", Callable(self, "_on_checkpoint_activated"))
+
+
 func _spawn_collectibles() -> void:
 	# 前 5 根羽毛位于终点传送门之前，玩家到达右侧高塔时可以通关。
-	for pos in FEATHER_POSITIONS:
+	for pos in level_data.feather_positions:
 		var feather := Area2D.new()
 		feather.name = "Feather"
 		feather.set_script(COLLECTIBLE_SCRIPT)
@@ -238,7 +249,7 @@ func _spawn_collectibles() -> void:
 
 
 func _spawn_coins() -> void:
-	for pos in COIN_POSITIONS:
+	for pos in level_data.coin_positions:
 		var coin := Area2D.new()
 		coin.name = "Coin"
 		coin.set_script(COIN_SCRIPT)
@@ -251,23 +262,26 @@ func _spawn_portal() -> void:
 	portal.name = "NextLevelPortal"
 	portal.z_index = 9
 	portal.set_script(PORTAL_SCRIPT)
-	portal.global_position = PORTAL_POSITION
-	portal.set("required_feathers", REQUIRED_FEATHERS)
+	portal.global_position = level_data.portal_position
+	portal.set("required_feathers", level_data.required_feathers)
 	world.add_child(portal)
 	portal.connect("victory_requested", Callable(self, "_on_victory_requested"))
 	portal.connect("locked_attempt", Callable(self, "_on_portal_locked"))
 
 
 func _spawn_decorations() -> void:
-	_add_decorative_wind_ring(CENTRAL_WIND_RING_POSITION)
-	_add_wind_banner(Vector2(2075, 760))
-	_add_finish_tower(Vector2(3420, 710))
-	_add_npc(Vector2(3272, 732), "bird")
-	_add_npc(Vector2(3500, 732), "rabbit")
-	_add_npc(Vector2(3388, 736), "hood")
-	_spawn_reward_chest(Vector2(3610, 760))
-	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", Vector2(122, 702), Vector2(0.46, 0.46), 7)
-	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", Vector2(2085, 742), Vector2(0.42, 0.42), 7)
+	var wind_ring_pos := level_data.central_wind_ring_position
+	var tower_base := _platform_center_or("tower_finish", level_data.portal_position + Vector2(0, 90))
+
+	_add_decorative_wind_ring(wind_ring_pos)
+	_add_wind_banner(wind_ring_pos + Vector2(25, 130))
+	_add_finish_tower(tower_base)
+	_add_npc(_platform_surface_pos("tower_finish", -0.39, -6.0, tower_base + Vector2(-140, -6)), "bird")
+	_add_npc(_platform_surface_pos("tower_finish", 0.35, -6.0, tower_base + Vector2(126, -6)), "rabbit")
+	_add_npc(_platform_surface_pos("tower_finish", 0.00, -6.0, tower_base + Vector2(0, -6)), "hood")
+	_spawn_reward_chest(_platform_surface_pos("tower_ground", 0.32, -16.0, level_data.portal_position + Vector2(190, 92)))
+	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", level_data.player_start + Vector2(2, -28), Vector2(0.46, 0.46), 7)
+	_add_generated_sprite("res://assets/environment/prop_blue_lantern_00.png", wind_ring_pos + Vector2(35, 112), Vector2(0.42, 0.42), 7)
 	_spawn_platform_props()
 
 
@@ -282,45 +296,137 @@ func _spawn_reward_chest(pos: Vector2) -> void:
 
 
 func _spawn_platform_props() -> void:
+	if level_data != null and level_data.level_id == "level_02":
+		_spawn_level02_platform_props()
+		return
+
 	# Small reusable props keep platforms from repeating one visual silhouette.
-	var grass_points := [
-		Vector2(515, 686), Vector2(880, 616), Vector2(1260, 548),
-		Vector2(1592, 606), Vector2(1910, 538), Vector2(2268, 588),
-		Vector2(2605, 646), Vector2(2968, 574), Vector2(3318, 676)
+	var grass_specs := [
+		["start_step", -0.28], ["floating_a", -0.14], ["floating_b", 0.10],
+		["floating_c", -0.05], ["portal_left", -0.18], ["portal_right", 0.08],
+		["tower_step_a", -0.10], ["tower_step_b", 0.12], ["tower_finish", -0.28]
 	]
-	for i in range(grass_points.size()):
-		var path := "res://assets/environment/prop_grass_tuft_%02d.png" % (i % 2)
-		_add_generated_sprite(path, grass_points[i], Vector2(0.72, 0.72), 8)
+	for i in range(grass_specs.size()):
+		var grass: Array = grass_specs[i]
+		var path := "res://assets/environment/prop_grass_tuft_%02d.png" % (2 + (i % 3))
+		_add_surface_sprite(str(grass[0]), float(grass[1]), -11.0, path, Vector2(0.34, 0.34), 8)
 
-	var crystal_points := [
-		Vector2(610, 685), Vector2(1340, 548), Vector2(1998, 538),
-		Vector2(2670, 646), Vector2(3376, 676)
+	var crystal_specs := [
+		["start_step", 0.36], ["floating_b", 0.40], ["portal_left", 0.38],
+		["tower_step_a", 0.32], ["tower_finish", 0.38]
 	]
-	for i in range(crystal_points.size()):
-		var path := "res://assets/environment/prop_crystal_post_%02d.png" % (i % 2)
-		_add_generated_sprite(path, crystal_points[i], Vector2(0.42, 0.42), 7)
+	for i in range(crystal_specs.size()):
+		var crystal: Array = crystal_specs[i]
+		var path := "res://assets/environment/prop_crystal_post_%02d.png" % (2 + (i % 3))
+		_add_surface_sprite(str(crystal[0]), float(crystal[1]), -23.0, path, Vector2(0.28, 0.28), 7)
 
-	var flower_points := [
-		Vector2(310, 774), Vector2(1160, 774), Vector2(2150, 774),
-		Vector2(2878, 568), Vector2(3480, 674)
+	var flower_specs := [
+		["start_ground", -0.34], ["approach_ground", -0.16], ["portal_ground", -0.06],
+		["tower_step_b", -0.35], ["tower_finish", 0.18]
 	]
-	for i in range(flower_points.size()):
+	for i in range(flower_specs.size()):
+		var flower: Array = flower_specs[i]
 		var path := "res://assets/environment/prop_flower_cluster_%02d.png" % (i % 2)
-		_add_generated_sprite(path, flower_points[i], Vector2(0.34, 0.34), 8)
+		_add_surface_sprite(str(flower[0]), float(flower[1]), -12.0, path, Vector2(0.34, 0.34), 8)
 
-	var rock_points := [
-		Vector2(430, 776), Vector2(1710, 776), Vector2(2475, 776),
-		Vector2(3198, 674)
+	var rock_specs := [
+		["start_ground", -0.04], ["approach_ground", 0.44],
+		["portal_ground", 0.34], ["tower_finish", -0.42]
 	]
-	for i in range(rock_points.size()):
+	for i in range(rock_specs.size()):
+		var rock: Array = rock_specs[i]
 		var path := "res://assets/environment/prop_rock_cluster_%02d.png" % (i % 2)
-		_add_generated_sprite(path, rock_points[i], Vector2(0.30, 0.30), 7)
+		_add_surface_sprite(str(rock[0]), float(rock[1]), -10.0, path, Vector2(0.30, 0.30), 7)
 
-	_add_generated_sprite("res://assets/environment/prop_chain_arch_00.png", Vector2(3536, 688), Vector2(0.28, 0.28), 6)
-	_add_generated_sprite("res://assets/environment/prop_cloud_bird_00.png", Vector2(3680, 505), Vector2(0.30, 0.30), -60)
+	_add_generated_sprite("res://assets/environment/prop_chain_arch_00.png", _platform_surface_pos("tower_finish", 0.33, -5.0, level_data.portal_position + Vector2(115, 20)), Vector2(0.28, 0.28), 6)
+	_add_generated_sprite("res://assets/environment/prop_cloud_bird_00.png", _platform_center_or("tower_finish", level_data.portal_position) + Vector2(260, -205), Vector2(0.30, 0.30), -60)
 
 
-func _create_platform(center: Vector2, size: Vector2, kind: String) -> void:
+func _spawn_level02_platform_props() -> void:
+	var grass_specs := [
+		["start_ground", -0.18], ["garden_ground", -0.30], ["rest_mid", -0.22],
+		["tower_step_a", -0.14], ["tower_ground", -0.32], ["tower_finish", -0.24]
+	]
+	for i in range(grass_specs.size()):
+		var grass: Array = grass_specs[i]
+		var path := "res://assets/environment/prop_grass_tuft_%02d.png" % (i % 5)
+		_add_surface_sprite(str(grass[0]), float(grass[1]), -11.0, path, Vector2(0.32, 0.32), 8)
+
+	var flower_specs := [
+		["garden_ground", 0.14], ["rest_mid", 0.28], ["tower_ground", -0.08],
+		["tower_finish", 0.20]
+	]
+	for i in range(flower_specs.size()):
+		var flower: Array = flower_specs[i]
+		var path := "res://assets/environment/prop_flower_cluster_%02d.png" % (i % 2)
+		_add_surface_sprite(str(flower[0]), float(flower[1]), -12.0, path, Vector2(0.32, 0.32), 8)
+
+	var crystal_specs := [
+		["garden_ground", 0.42], ["rest_mid", -0.40], ["tower_step_a", 0.34],
+		["tower_finish", 0.38]
+	]
+	for i in range(crystal_specs.size()):
+		var crystal: Array = crystal_specs[i]
+		var path := "res://assets/environment/prop_crystal_post_%02d.png" % (1 + (i % 4))
+		_add_surface_sprite(str(crystal[0]), float(crystal[1]), -23.0, path, Vector2(0.27, 0.27), 7)
+
+	var cloud_marker_specs := [
+		["cloud_a", -0.36], ["cloud_b", 0.36], ["cloud_c", -0.30],
+		["cloud_d", 0.34], ["cloud_e", -0.34], ["cloud_f", 0.30]
+	]
+	for marker_data in cloud_marker_specs:
+		var marker: Array = marker_data
+		_add_surface_sprite(str(marker[0]), float(marker[1]), -30.0, "res://assets/environment/prop_cloudgarden_marker_00.png", Vector2(0.34, 0.34), 8)
+
+	var rock_specs := [
+		["start_ground", 0.32], ["rest_mid", 0.04], ["tower_ground", 0.34]
+	]
+	for i in range(rock_specs.size()):
+		var rock: Array = rock_specs[i]
+		var path := "res://assets/environment/prop_rock_cluster_%02d.png" % (i % 2)
+		_add_surface_sprite(str(rock[0]), float(rock[1]), -10.0, path, Vector2(0.28, 0.28), 7)
+
+	_add_generated_sprite("res://assets/environment/prop_chain_arch_00.png", _platform_surface_pos("tower_finish", 0.34, -5.0, level_data.portal_position + Vector2(122, 20)), Vector2(0.26, 0.26), 6)
+	_add_generated_sprite("res://assets/environment/prop_cloud_bird_00.png", _platform_center_or("cloud_e", level_data.portal_position) + Vector2(160, -175), Vector2(0.28, 0.28), -60)
+
+
+func _sync_level_bounds_to_content() -> void:
+	var right_edge := level_data.level_width
+	for data in level_data.platform_layout:
+		right_edge = max(right_edge, _platform_right_x(data) + 180.0)
+	right_edge = max(right_edge, level_data.portal_position.x + 260.0)
+	level_data.level_width = right_edge
+
+
+func _platform_center_or(platform_name: String, fallback: Vector2) -> Vector2:
+	var data := level_data.get_platform_by_name(platform_name)
+	if data.is_empty():
+		return fallback
+	return data.get("center", fallback)
+
+
+func _platform_surface_pos(platform_name: String, x_ratio: float, y_offset: float, fallback: Vector2) -> Vector2:
+	var data := level_data.get_platform_by_name(platform_name)
+	if data.is_empty():
+		return fallback
+
+	var center: Vector2 = data.get("center", fallback)
+	var size: Vector2 = data.get("size", Vector2.ZERO)
+	return Vector2(center.x + size.x * x_ratio, center.y - size.y * 0.5 + y_offset)
+
+
+func _add_surface_sprite(platform_name: String, x_ratio: float, y_offset: float, path: String, sprite_scale: Vector2, z: int) -> bool:
+	var fallback := _platform_center_or(platform_name, Vector2.ZERO)
+	if fallback == Vector2.ZERO:
+		return false
+	return _add_generated_sprite(path, _platform_surface_pos(platform_name, x_ratio, y_offset, fallback), sprite_scale, z)
+
+
+func _create_platform(center: Vector2, size: Vector2, kind: String, platform_type: String = "stone") -> void:
+	if platform_type == "cloud":
+		_create_cloud_platform(center, size, kind)
+		return
+
 	var body := StaticBody2D.new()
 	body.name = "Platform_" + kind
 	body.position = center
@@ -352,6 +458,16 @@ func _create_platform(center: Vector2, size: Vector2, kind: String) -> void:
 		body.add_child(line)
 
 
+func _create_cloud_platform(center: Vector2, size: Vector2, kind: String) -> void:
+	var body := StaticBody2D.new()
+	body.name = "CloudPlatform_" + kind
+	body.position = center
+	body.z_index = 5
+	body.set_script(CLOUD_PLATFORM_SCRIPT)
+	body.set("platform_size", size)
+	world.add_child(body)
+
+
 func _add_platform_art(body: StaticBody2D, size: Vector2, kind: String) -> bool:
 	var path := _select_platform_art_path(kind)
 
@@ -375,6 +491,17 @@ func _add_platform_art(body: StaticBody2D, size: Vector2, kind: String) -> bool:
 
 
 func _select_platform_art_path(kind: String) -> String:
+	if level_data != null and level_data.level_id == "level_02":
+		if kind == "tower_finish":
+			return "res://assets/environment/platform_cloudgarden_tower_cap_00.png"
+		if kind == "tower_ground" or kind == "rest_mid":
+			return "res://assets/environment/platform_cloudgarden_long_01.png"
+		if kind == "start_ground" or kind == "garden_ground":
+			return "res://assets/environment/platform_cloudgarden_long_00.png"
+		if kind.contains("step"):
+			return "res://assets/environment/platform_cloudgarden_small_01.png"
+		return "res://assets/environment/platform_cloudgarden_small_00.png"
+
 	if kind == "tower_finish":
 		return "res://assets/environment/platform_unified_tower_cap_00.png"
 	if kind == "tower_ground":
@@ -421,6 +548,16 @@ func _aligned_platform_art_y(path: String, texture: Texture2D, size: Vector2, sc
 
 func _platform_visual_surface_y(path: String) -> float:
 	var file_name := path.get_file()
+	if file_name == "platform_cloudgarden_long_00.png":
+		return 15.0
+	if file_name == "platform_cloudgarden_long_01.png":
+		return 14.0
+	if file_name == "platform_cloudgarden_small_00.png":
+		return 21.0
+	if file_name == "platform_cloudgarden_small_01.png":
+		return 22.0
+	if file_name == "platform_cloudgarden_tower_cap_00.png":
+		return 44.0
 	if file_name == "platform_unified_small_00.png":
 		return 32.0
 	if file_name == "platform_unified_small_01.png":
@@ -443,11 +580,11 @@ func _platform_visual_surface_y(path: String) -> float:
 func _validate_level_layout() -> void:
 	# 检查主路线相邻平台的高度和边缘距离，提前发现“跳不上去”的关卡数据。
 	var by_name := {}
-	for data in PLATFORM_LAYOUT:
+	for data in level_data.platform_layout:
 		by_name[data["name"]] = data
 
 	var previous_name := ""
-	for platform_name in ROUTE_PLATFORM_NAMES:
+	for platform_name in level_data.route_platform_names:
 		if not by_name.has(platform_name):
 			push_warning("Missing route platform: %s" % platform_name)
 			continue
@@ -718,6 +855,52 @@ func _on_player_inventory_changed(score: int, feathers: int) -> void:
 	_refresh_hud()
 
 
+func _on_checkpoint_activated(checkpoint_id: String, spawn_position: Vector2) -> void:
+	current_checkpoint_id = checkpoint_id
+	if hud:
+		hud.call("show_hint", "风之印记已记录")
+
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null and level_data != null and player != null:
+		var save_data_variant: Variant = save_manager.call("build_save_data", level_data.level_id, current_checkpoint_id, player, elapsed, {
+			"player_position_x": spawn_position.x,
+			"player_position_y": spawn_position.y
+		})
+		if typeof(save_data_variant) == TYPE_DICTIONARY:
+			save_manager.call("save_game", save_data_variant)
+
+
+func _apply_loaded_save_if_any() -> void:
+	if pending_loaded_save.is_empty():
+		return
+	if player == null or level_data == null:
+		return
+
+	current_checkpoint_id = str(pending_loaded_save.get("checkpoint_id", "start"))
+
+	var x := float(pending_loaded_save.get("player_position_x", level_data.player_start.x))
+	var y := float(pending_loaded_save.get("player_position_y", level_data.player_start.y))
+	var restored_position := Vector2(x, y)
+	player.global_position = restored_position
+	player.call("set_spawn_position", restored_position)
+
+	player.set("score", int(pending_loaded_save.get("score", 0)))
+	player.set("feathers", int(pending_loaded_save.get("feathers", 0)))
+	player.set("lives", int(pending_loaded_save.get("lives", 3)))
+	player.set("wing_energy", float(pending_loaded_save.get("wing_energy", 100.0)))
+	elapsed = float(pending_loaded_save.get("elapsed", 0.0))
+
+	player_score = int(player.get("score"))
+	player_feathers = int(player.get("feathers"))
+	player_lives = int(player.get("lives"))
+	player_energy = float(player.get("wing_energy"))
+
+	if portal:
+		portal.call("update_feathers", player_feathers)
+
+	_refresh_hud()
+
+
 func _on_portal_locked(required: int, current: int) -> void:
 	hud.call("show_hint", "还需要 %d 根羽毛，回去继续收集" % max(0, required - current))
 
@@ -727,10 +910,39 @@ func _on_victory_requested() -> void:
 		return
 
 	victory = true
+	waiting_for_next_level = false
 	player.call("celebrate")
 	_create_victory_sound_placeholder()
 	hud.call("show_victory", elapsed, player_score, player_feathers)
 	_spawn_victory_burst()
+
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null:
+		game_session.call("mark_level_completed", level_data.level_id)
+
+	if level_data.next_level_id != "" and LEVEL_LOADER_SCRIPT.has_level(level_data.next_level_id):
+		waiting_for_next_level = true
+		hud.call("show_hint", "按 Enter / Space 进入下一关")
+	else:
+		hud.call("show_hint", "Demo 已完成，感谢游玩")
+
+
+func _enter_next_level() -> void:
+	if level_data == null or level_data.next_level_id == "":
+		return
+
+	var next_id := level_data.next_level_id
+	var game_session := get_node_or_null("/root/GameSession")
+	if game_session != null and not bool(game_session.call("start_level", next_id)):
+		hud.call("show_hint", "下一关加载失败")
+		return
+
+	waiting_for_next_level = false
+	var err: Error = get_tree().change_scene_to_file("res://scenes/Main.tscn")
+	if err != OK:
+		waiting_for_next_level = true
+		hud.call("show_hint", "下一关加载失败")
+		push_error("Main: failed to load next level %s, error %s" % [next_id, err])
 
 
 func _create_victory_sound_placeholder() -> void:
@@ -805,4 +1017,10 @@ func _on_chest_reward_claimed(score_value: int, energy_value: float) -> void:
 
 func _refresh_hud() -> void:
 	if hud:
-		hud.call("update_stats", player_lives, player_energy, player_score, player_feathers, REQUIRED_FEATHERS, LEVEL_NAME, elapsed)
+		hud.call("update_stats", player_lives, player_energy, player_score, player_feathers, level_data.required_feathers, level_data.level_name, elapsed)
+
+
+func _play_bgm(track_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_bgm", track_name)

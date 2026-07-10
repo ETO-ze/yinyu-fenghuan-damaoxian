@@ -5,7 +5,7 @@ signal reward_claimed(score_value: int, energy_value: float)
 @export var score_value := 300
 @export var energy_value := 45.0
 
-const CLOSED_SPRITE_Y := -8.0
+const CLOSED_SPRITE_Y := 0.0
 const OPEN_SPRITE_Y := -22.0
 
 var opened := false
@@ -35,6 +35,7 @@ func _on_body_entered(body: Node) -> void:
 		body.call("add_score", score_value)
 		if body.has_method("restore_energy"):
 			body.call("restore_energy", energy_value)
+		_play_sfx("chest_open")
 		_set_open_sprite()
 		_spawn_reward_sparkles()
 		reward_claimed.emit(score_value, energy_value)
@@ -116,3 +117,9 @@ func _make_reward_particle(path: String, fallback_color: Color) -> Node2D:
 	])
 	bit.color = fallback_color
 	return bit
+
+
+func _play_sfx(sound_name: String) -> void:
+	var audio_manager := get_node_or_null("/root/AudioManager")
+	if audio_manager != null:
+		audio_manager.call("play_sfx", sound_name)
