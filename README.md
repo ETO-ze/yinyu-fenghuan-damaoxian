@@ -1,18 +1,18 @@
-# 银羽风环大冒险 Demo
+# 银羽风环大冒险 Beta 0.2
 
 Godot 4.x / GDScript 制作的最小可玩 2D 横版平台 Demo。
 
 ## 当前进度
 
-当前版本是 v0.2 原型整理版：核心流程已经跑通，重点是验证竖屏横版平台玩法、美术方向和关卡编辑方式。
+当前版本是 **Beta 0.2**：竖屏横版平台核心流程、开始界面、第一关和第二关流转已经跑通，当前重点是继续打磨关卡节奏、美术一致性与角色动作。
 
 - 可运行入口：`scenes/StartMenu.tscn`。
-- 核心关卡：`scenes/Main.tscn`，运行时优先读取 `scenes/levels/Level01Editable.tscn`。
+- 核心关卡：`scenes/Main.tscn`；第一关读取 `scenes/levels/Level01Editable.tscn`，通关后进入数据驱动的第二关“云桥花园 · 浮云试炼”。
 - 玩家能力：移动、跳跃、滑翔、持续疾跑、下蹲、掉落重生、生命归零失败。
 - 关卡目标：至少收集 5 根羽毛后，到右侧高塔终点传送门通关；收集第 5 根羽毛不会自动通关。
 - 可编辑内容：第一关平台、羽毛、金币、出生点、传送门、检查点可在 Godot 2D 编辑器里拖动。
 - 跟随平台的装饰：草丛、晶体、花、石块、终点塔楼、NPC、奖励宝箱会根据平台名自动归位。
-- 音频状态：当前使用原创/占位 16-bit 风格 BGM 和 SFX；外部歌曲改编方向暂时搁置，未作为正式资源路线。
+- 音频状态：开始界面和两关统一使用 `Pixel Dungeon` 循环主旋律，菜单、移动、收集、传送门与宝箱使用 16-bit 风格 SFX。
 
 ## 如何运行
 
@@ -40,7 +40,7 @@ Godot 4.x / GDScript 制作的最小可玩 2D 横版平台 Demo。
 
 - `portal_right -> tower_step_a` 的平台间距偏大，是为了保留一点挑战性，暂时不要自动改短。
 - 部分美术仍是生成素材/占位素材，重点先看风格一致性和功能可读性。
-- 音乐方向未定，先不要把主题曲作为主要评审点。
+- 当前主旋律已接入并循环播放，后续重点检查音量平衡、循环衔接和场景切换连续性。
 
 ## 文件结构
 
@@ -120,9 +120,9 @@ silverwing_wind_ring_demo/
 
 ## 截图
 
-![开始界面完整预览](docs/art/start_menu_full_preview_v1.png)
+![Beta 0.2 开始界面实机截图](docs/art/beta0.2_start_menu.png)
 
-![开始界面部件拆分](docs/art/start_menu_parts_contact_sheet_v1.png)
+![Beta 0.2 第一关实机截图](docs/art/beta0.2_level01.png)
 
 ## 当前关卡
 
@@ -179,7 +179,7 @@ silverwing_wind_ring_demo/
 - `assets/environment/tower_finish_generated.png`：右侧终点高塔正式视觉稿。
 - `assets/environment/prop_blue_lantern_00.png`：蓝焰灯笼关卡道具。
 - `assets/audio/sfx/*.wav`：菜单、跳跃、落地、掉落重生、疾跑、收集、传送门、宝箱的 16-bit 风格占位音效。
-- `assets/audio/bgm/title_theme.wav`、`assets/audio/bgm/level_01.wav`：开始界面和第一关的轻量循环 BGM 占位。
+- `assets/audio/bgm/pixel_dungeon_theme.mp3`：开始界面、第一关与第二关共用的循环主旋律。
 
 ## 最近修复
 
@@ -205,7 +205,7 @@ silverwing_wind_ring_demo/
 - 重做主角动作：跑步扩展到 12 帧，疾跑 6 帧，蹲下 4 帧，跳跃/下落各 4 帧，滑翔 5 帧。
 - 重做关闭宝箱为 `chest_reward_closed_02.png`，尺寸、金边、蓝宝石和材质语言与开启宝箱保持一致。
 
-## v0.3 第二关接入
+## Beta 0.2 第二关接入
 
 - 新增 `scripts/GameSession.gd`，作为 autoload 管理当前关卡、继续游戏和下一关流转。
 - `LevelData` 新增 `next_level_id` 字段；第一关完成后会等待玩家按 Enter / Space，再进入 `level_02`。

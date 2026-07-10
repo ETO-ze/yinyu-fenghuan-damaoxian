@@ -15,8 +15,10 @@ const SFX_PATHS := {
 }
 
 const BGM_PATHS := {
-	"title": "res://assets/audio/bgm/title_theme.wav",
-	"level_01": "res://assets/audio/bgm/level_01.wav"
+	# One shared theme keeps the title screen and every playable level sonically connected.
+	"title": "res://assets/audio/bgm/pixel_dungeon_theme.mp3",
+	"level_01": "res://assets/audio/bgm/pixel_dungeon_theme.mp3",
+	"level_02": "res://assets/audio/bgm/pixel_dungeon_theme.mp3"
 }
 
 var _bgm_player: AudioStreamPlayer
@@ -98,6 +100,9 @@ func _load_bgm_stream(path: String) -> AudioStream:
 	if stream is AudioStreamWAV:
 		var wav := stream as AudioStreamWAV
 		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	elif stream is AudioStreamMP3:
+		var mp3 := stream as AudioStreamMP3
+		mp3.loop = true
 	return stream
 
 

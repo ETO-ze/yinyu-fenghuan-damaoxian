@@ -50,7 +50,8 @@ func _ready() -> void:
 			pending_loaded_save = loaded_save
 
 	hud = $HUD
-	_play_bgm("level_01")
+	# The current chapter uses the shared Pixel Dungeon theme; AudioManager keeps it looping.
+	_play_bgm("level_02" if level_data.level_id == "level_02" else "level_01")
 	_build_parallax_background()
 	_build_background_silhouettes()
 	_validate_level_layout()
